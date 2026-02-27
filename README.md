@@ -54,17 +54,26 @@ Common targets (all run inside the API container):
 - `make logs`
 - `make shell`
 - `make start`
+- `make dbinit`
 - `make lint`
 - `make test`
 - `make test-watch`
 
 Defaults used by the dev compose:
 
-- API: `PORT=3000`
+- API: `PORT=8080`
 - MariaDB: `DB_HOST=mariadb`, `DB_PORT=3306`, `DB_NAME=app`, `DB_USER=app`, `DB_PASSWORD=app`
 - Redis: `REDIS_HOST=redis`, `REDIS_PORT=6379`, `REDIS_PASSWORD=`
 
 You can override any value with environment variables.
+
+### Database schema workflow (development)
+
+- `src/database/schema.sql` is the single source of truth for the local schema.
+- To initialize or refresh local DB schema, run `make dbinit`.
+- `dbinit` is destructive by design: it drops and recreates the dev database before applying `src/database/schema.sql`.
+- When production schema changes, replace `src/database/schema.sql` with the new dump and run `make dbinit` again.
+- Ownership: keep `src/database/schema.sql` updated in this repository; do not maintain parallel migration history for dev setup.
 
 ### Production (API only)
 

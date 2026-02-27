@@ -1,4 +1,4 @@
-.PHONY: help up down build logs shell lint test test-watch start
+.PHONY: help up down build logs shell lint test test-watch start dbinit verify-dbinit
 
 COMPOSE = docker compose -f docker-compose.dev.yml
 
@@ -10,6 +10,8 @@ help:
 	@printf "  logs        Follow API logs\n"
 	@printf "  shell       Open a shell in API container\n"
 	@printf "  start       Start API in watch mode\n"
+	@printf "  dbinit      Recreate MariaDB schema from src/database/schema.sql\n"
+	@printf "  verify-dbinit  Verify dbinit happy/failure paths\n"
 	@printf "  lint        Run lint inside API container\n"
 	@printf "  test        Run tests inside API container\n"
 	@printf "  test-watch  Run tests in watch mode inside API container\n"
@@ -32,6 +34,16 @@ shell:
 start:
 	$(COMPOSE) up -d --build
 	$(COMPOSE) exec api npm run start:dev
+
+dbinit:
+	@test -s src/database/schema.sql || (printf "src/database/schema.sql not found or empty\n" && exit 1)
+	$(COMPOSE) up -d mariadb
+	$(COMPOSE) exec -T mariadb sh -lc 'mariadb -uroot -p"$$MARIADB_ROOT_PASSWORD" -e "DROP DATABASE IF EXISTS \`$$MARIADB_DATABASE\`; CREATE DATABASE \`$$MARIADB_DATABASE\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"'
+	$(COMPOSE) exec -T mariadb sh -lc 'mariadb -uroot -p"$$MARIADB_ROOT_PASSWORD" "$$MARIADB_DATABASE"' < src/database/schema.sql
+	@printf "Database initialized from src/database/schema.sql\n"
+
+verify-dbinit:
+	bash scripts/verify-dbinit.sh
 
 lint:
 	$(COMPOSE) exec api npm run lint
