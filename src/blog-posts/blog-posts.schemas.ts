@@ -1,7 +1,12 @@
 import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod';
 
 export const blogPostIdSchema = z.object({
   id: z.coerce.number().int().positive(),
+});
+
+export const listBlogPostsQuerySchema = z.object({
+  limit: z.coerce.number().int().positive().max(100).optional(),
 });
 
 export const createBlogPostSchema = z.object({
@@ -28,3 +33,13 @@ export const updateBlogPostSchema = z
       message: 'At least one field must be provided',
     },
   );
+
+export class BlogPostIdParamsDto extends createZodDto(blogPostIdSchema) {}
+
+export class ListBlogPostsQueryDto extends createZodDto(
+  listBlogPostsQuerySchema,
+) {}
+
+export class CreateBlogPostBodyDto extends createZodDto(createBlogPostSchema) {}
+
+export class UpdateBlogPostBodyDto extends createZodDto(updateBlogPostSchema) {}

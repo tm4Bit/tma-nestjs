@@ -24,8 +24,8 @@ export class BlogPostsService {
     return post;
   }
 
-  async list(): Promise<BlogPost[]> {
-    return this.repository.list();
+  async list(limit?: number): Promise<BlogPost[]> {
+    return this.repository.list(limit);
   }
 
   async get(id: number): Promise<BlogPost> {

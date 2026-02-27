@@ -6,46 +6,51 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { BlogPostsService } from './blog-posts.service.js';
 import {
-  blogPostIdSchema,
-  createBlogPostSchema,
-  updateBlogPostSchema,
+  BlogPostIdParamsDto,
+  CreateBlogPostBodyDto,
+  ListBlogPostsQueryDto,
+  UpdateBlogPostBodyDto,
 } from './blog-posts.schemas.js';
+import {
+  zodBodyValidationPipe,
+  zodParamsValidationPipe,
+  zodQueryValidationPipe,
+} from '../validation/zod-validation.js';
 
 @Controller('blog-posts')
 export class BlogPostsController {
   constructor(private readonly service: BlogPostsService) {}
 
   @Post()
-  async create(@Body() body: unknown) {
-    const input = createBlogPostSchema.parse(body);
-    return this.service.create(input);
+  async create(@Body(zodBodyValidationPipe) body: CreateBlogPostBodyDto) {
+    return this.service.create(body);
   }
 
   @Get()
-  async list() {
-    return this.service.list();
+  async list(@Query(zodQueryValidationPipe) query: ListBlogPostsQueryDto) {
+    return this.service.list(query.limit);
   }
 
   @Get(':id')
-  async get(@Param() params: unknown) {
-    const { id } = blogPostIdSchema.parse(params);
-    return this.service.get(id);
+  async get(@Param(zodParamsValidationPipe) params: BlogPostIdParamsDto) {
+    return this.service.get(params.id);
   }
 
   @Patch(':id')
-  async update(@Param() params: unknown, @Body() body: unknown) {
-    const { id } = blogPostIdSchema.parse(params);
-    const input = updateBlogPostSchema.parse(body);
-    return this.service.update(id, input);
+  async update(
+    @Param(zodParamsValidationPipe) params: BlogPostIdParamsDto,
+    @Body(zodBodyValidationPipe) body: UpdateBlogPostBodyDto,
+  ) {
+    return this.service.update(params.id, body);
   }
 
   @Delete(':id')
-  async remove(@Param() params: unknown) {
-    const { id } = blogPostIdSchema.parse(params);
-    await this.service.delete(id);
+  async remove(@Param(zodParamsValidationPipe) params: BlogPostIdParamsDto) {
+    await this.service.delete(params.id);
     return { status: 'ok' };
   }
 }

@@ -25,8 +25,8 @@ export class BlogPostsRepository extends Repository {
     return this.findById(Number(id));
   }
 
-  async list(): Promise<BlogPost[]> {
-    return this.db('blog_posts')
+  async list(limit?: number): Promise<BlogPost[]> {
+    const query = this.db('blog_posts')
       .select(
         'id',
         'title',
@@ -36,7 +36,13 @@ export class BlogPostsRepository extends Repository {
         'created_at as createdAt',
         'updated_at as updatedAt',
       )
-      .orderBy('created_at', 'desc') as Promise<BlogPost[]>;
+      .orderBy('created_at', 'desc');
+
+    if (limit !== undefined) {
+      query.limit(limit);
+    }
+
+    return query as Promise<BlogPost[]>;
   }
 
   async findById(id: number): Promise<BlogPost | null> {

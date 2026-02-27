@@ -74,6 +74,20 @@ describe('BlogPostsController (e2e)', () => {
       .expect(({ body }) => {
         expect(body).toEqual([{ id: 1 }]);
       });
+
+    expect(repository.list).toHaveBeenCalledWith(undefined);
+  });
+
+  it('GET /blog-posts supports validated query params', async () => {
+    repository.list.mockResolvedValue([{ id: 1 }]);
+
+    await request(app.getHttpServer()).get('/blog-posts?limit=10').expect(200);
+
+    expect(repository.list).toHaveBeenCalledWith(10);
+  });
+
+  it('GET /blog-posts rejects invalid query params', async () => {
+    await request(app.getHttpServer()).get('/blog-posts?limit=0').expect(400);
   });
 
   it('GET /blog-posts/:id returns a post', async () => {
@@ -86,6 +100,10 @@ describe('BlogPostsController (e2e)', () => {
         const response = body as { id?: number };
         expect(response.id).toBe(2);
       });
+  });
+
+  it('GET /blog-posts/:id rejects invalid path params', async () => {
+    await request(app.getHttpServer()).get('/blog-posts/abc').expect(400);
   });
 
   it('PATCH /blog-posts/:id updates a post', async () => {
@@ -110,5 +128,12 @@ describe('BlogPostsController (e2e)', () => {
       .expect(({ body }) => {
         expect(body).toEqual({ status: 'ok' });
       });
+  });
+
+  it('POST /blog-posts rejects invalid request body', async () => {
+    await request(app.getHttpServer())
+      .post('/blog-posts')
+      .send({ title: '' })
+      .expect(400);
   });
 });

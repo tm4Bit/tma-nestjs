@@ -42,5 +42,8 @@ format:
 test:
 	$(COMPOSE) exec api npm run test
 
+test-e2e:
+	$(COMPOSE) exec api npm run test:e2e
+
 test-watch:
 	$(COMPOSE) exec api npm run test:watch
