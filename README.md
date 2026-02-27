@@ -39,6 +39,25 @@ $ npm install
 $ docker compose -f docker-compose.dev.yml up --build
 ```
 
+If you prefer a shorter workflow, use the Makefile targets:
+
+```bash
+$ make up
+$ make test
+$ make lint
+```
+
+Common targets (all run inside the API container):
+
+- `make up` / `make down`
+- `make build`
+- `make logs`
+- `make shell`
+- `make start`
+- `make lint`
+- `make test`
+- `make test-watch`
+
 Defaults used by the dev compose:
 
 - API: `PORT=3000`

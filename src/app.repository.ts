@@ -10,9 +10,9 @@ export class AppRepository extends Repository {
   }
 
   async getDatabaseVersion(): Promise<string> {
-    const result = (await this.db.raw(
+    const result = await this.db.raw<{ version: string }[]>(
       'select version() as version',
-    )) as unknown;
+    );
     const rows = Array.isArray(result)
       ? result
       : Array.isArray(result?.[0])
