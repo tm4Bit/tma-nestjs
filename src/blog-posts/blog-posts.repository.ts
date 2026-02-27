@@ -66,25 +66,10 @@ export class BlogPostsRepository extends Repository {
     id: number,
     input: UpdateBlogPostInput,
   ): Promise<BlogPost | null> {
-    const updates: Record<string, unknown> = {};
-
-    // if (input.title !== undefined) {
-    //   updates.title = input.title;
-    // }
-    //
-    // if (input.slug !== undefined) {
-    //   updates.slug = input.slug;
-    // }
-    //
-    // if (input.content !== undefined) {
-    //   updates.content = input.content;
-    // }
-
-    Object.entries(input).forEach(([key, value]) => {
-      if (value !== undefined) {
-        updates[key] = value;
-      }
-    });
+    const updates = Object.fromEntries(
+      Object.entries(input).filter(([, value]) => value !== undefined),
+    ) as Record<string, unknown>;
+    console.log('Updates:', updates);
 
     if (Object.keys(updates).length === 0) {
       return this.findById(id);
@@ -99,17 +84,17 @@ export class BlogPostsRepository extends Repository {
     return this.findById(id);
   }
 
+  async delete(id: number): Promise<boolean> {
+    const deleted = await this.db('blog_posts').where({ id }).del();
+
+    return deleted > 0;
+  }
+
   async publish(id: number): Promise<BlogPost | null> {
     const updated = await this.db('blog_posts')
       .where({ id })
       .update({ published_at: new Date() });
 
     return updated ? this.findById(id) : null;
-  }
-
-  async delete(id: number): Promise<boolean> {
-    const deleted = await this.db('blog_posts').where({ id }).del();
-
-    return deleted > 0;
   }
 }
