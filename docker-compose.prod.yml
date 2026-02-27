@@ -16,4 +16,4 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
-      - "3000:3000"
+      - "${PORT:-8080}:${PORT:-8080}"
