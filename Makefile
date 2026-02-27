@@ -36,6 +36,9 @@ start:
 lint:
 	$(COMPOSE) exec api npm run lint
 
+format:
+	$(COMPOSE) exec api npm run format
+
 test:
 	$(COMPOSE) exec api npm run test
 
