@@ -3,6 +3,10 @@ import { Knex } from 'knex';
 import { KNEX_CONNECTION } from './database/knex.config.js';
 import { Repository } from './database/repository.js';
 
+type VersionRow = { version: string };
+type NestedQueryResult = Array<Array<VersionRow>>;
+type FlatQueryResult = Array<VersionRow>;
+
 @Injectable()
 export class AppRepository extends Repository {
   constructor(@Inject(KNEX_CONNECTION) db: Knex) {
@@ -10,16 +14,16 @@ export class AppRepository extends Repository {
   }
 
   async getDatabaseVersion(): Promise<string> {
-    const result = await this.db.raw<{ version: string }[]>(
+    const result = await this.db.raw<NestedQueryResult | FlatQueryResult>(
       'select version() as version',
     );
-    const rows = Array.isArray(result)
-      ? result
-      : Array.isArray(result?.[0])
-        ? result[0]
-        : [];
-    const [row] = rows as Array<{ version?: string }>;
+    const first = result[0];
+    const row = Array.isArray(first) ? first[0] : first;
 
-    return row?.version ?? 'unknown';
+    if (!row?.version) {
+      throw new Error('Database version query returned no rows');
+    }
+
+    return row.version;
   }
 }

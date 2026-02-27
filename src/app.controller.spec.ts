@@ -24,10 +24,11 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', async () => {
-      const result = await appController.getHello();
+    it('should return status ok', async () => {
+      const result = await appController.checkhealth();
 
-      expect(result).toContain('Hello World!');
+      expect(result.status).toBe('ok');
+      expect(result.databaseVersion).toBe('test-version');
     });
   });
 });

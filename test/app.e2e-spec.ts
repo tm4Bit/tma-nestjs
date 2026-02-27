@@ -38,7 +38,7 @@ describe('AppController (e2e)', () => {
       .get('/')
       .expect(200)
       .expect((response) => {
-        expect(response.text).toContain('Hello World!');
+        expect(response.body.status).toBe('ok');
       });
   });
 });

@@ -5,8 +5,11 @@ import { AppRepository } from './app.repository.js';
 export class AppService {
   constructor(private readonly appRepository: AppRepository) {}
 
-  async getHello(): Promise<string> {
+  async checkhealth(): Promise<{ status: string; databaseVersion: string }> {
     const dbVersion = await this.appRepository.getDatabaseVersion();
-    return `Hello World! DB=${dbVersion}`;
+    return {
+      status: 'ok',
+      databaseVersion: dbVersion,
+    };
   }
 }
