@@ -3,9 +3,10 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
-  Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { BlogPostsService } from './blog-posts.service.js';
@@ -40,7 +41,7 @@ export class BlogPostsController {
     return this.service.get(params.id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   async update(
     @Param(zodParamsValidationPipe) params: BlogPostIdParamsDto,
     @Body(zodBodyValidationPipe) body: UpdateBlogPostBodyDto,
@@ -48,9 +49,14 @@ export class BlogPostsController {
     return this.service.update(params.id, body);
   }
 
+  @Post(':id')
+  async pusblish(@Param(zodParamsValidationPipe) params: BlogPostIdParamsDto) {
+    return this.service.publish(params.id);
+  }
+
   @Delete(':id')
+  @HttpCode(204)
   async remove(@Param(zodParamsValidationPipe) params: BlogPostIdParamsDto) {
     await this.service.delete(params.id);
-    return { status: 'ok' };
   }
 }

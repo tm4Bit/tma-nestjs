@@ -21,17 +21,14 @@ export const updateBlogPostSchema = z
     title: z.string().min(1).optional(),
     slug: z.string().min(1).optional(),
     content: z.string().min(1).optional(),
-    publishedAt: z.coerce.date().optional().nullable(),
   })
   .refine(
     (data) =>
       data.title !== undefined ||
       data.slug !== undefined ||
-      data.content !== undefined ||
-      data.publishedAt !== undefined,
-    {
-      message: 'At least one field must be provided',
-    },
+      data.content !== undefined || {
+        message: 'At least one field must be provided',
+      },
   );
 
 export class BlogPostIdParamsDto extends createZodDto(blogPostIdSchema) {}

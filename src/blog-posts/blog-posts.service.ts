@@ -48,6 +48,16 @@ export class BlogPostsService {
     return post;
   }
 
+  async publish(id: number): Promise<BlogPost> {
+    const post = await this.repository.publish(id);
+
+    if (!post) {
+      throw new NotFoundException('Blog post not found');
+    }
+
+    return post;
+  }
+
   async delete(id: number): Promise<void> {
     const deleted = await this.repository.delete(id);
 

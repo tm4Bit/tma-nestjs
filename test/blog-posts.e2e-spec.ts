@@ -127,11 +127,11 @@ describe('BlogPostsController (e2e)', () => {
       .expect('Content-Type', problemJsonContentTypePattern);
   });
 
-  it('PATCH /blog-posts/:id updates a post', async () => {
+  it('PUT /blog-posts/:id updates a post', async () => {
     repository.update.mockResolvedValue({ id: 3, title: 'Updated' });
 
     await request(app.getHttpServer())
-      .patch('/blog-posts/3')
+      .put('/blog-posts/3')
       .send({ title: 'Updated' })
       .expect(200)
       .expect(({ body }) => {
@@ -145,9 +145,9 @@ describe('BlogPostsController (e2e)', () => {
 
     await request(app.getHttpServer())
       .delete('/blog-posts/4')
-      .expect(200)
+      .expect(204)
       .expect(({ body }) => {
-        expect(body).toEqual({ status: 'ok' });
+        expect(body).toEqual({});
       });
   });
 

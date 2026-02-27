@@ -39,4 +39,50 @@ describe('BlogPostsService', () => {
 
     await expect(service.delete(3)).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('updates a post', async () => {
+    const updatedPost = { ...post, title: 'Updated' };
+    const repository = {
+      update: jest.fn().mockResolvedValue(updatedPost),
+    };
+    const service = new BlogPostsService(repository as never);
+
+    await expect(service.update(4, { title: 'Updated' })).resolves.toEqual(
+      updatedPost,
+    );
+  });
+
+  it('does not update title when not provided', async () => {
+    const updatedPost = { ...post, title: 'Hello' };
+    const repository = {
+      update: jest.fn().mockResolvedValue(updatedPost),
+    };
+    const service = new BlogPostsService(repository as never);
+
+    await expect(
+      service.update(4, { content: 'New content' }),
+    ).resolves.toEqual(updatedPost);
+  });
+
+  it('does not update a fiel send as null', async () => {
+    const updatedPost = { ...post, title: 'Hello', publishedAt: null };
+    const repository = {
+      update: jest.fn().mockResolvedValue(updatedPost),
+    };
+    const service = new BlogPostsService(repository as never);
+
+    await expect(service.update(4, { title: null })).resolves.toEqual(
+      updatedPost,
+    );
+  });
+
+  it('publishes a post', async () => {
+    const publishedPost = { ...post, publishedAt: new Date() };
+    const repository = {
+      publish: jest.fn().mockResolvedValue(publishedPost),
+    };
+    const service = new BlogPostsService(repository as never);
+
+    await expect(service.publish(4)).resolves.toEqual(publishedPost);
+  });
 });

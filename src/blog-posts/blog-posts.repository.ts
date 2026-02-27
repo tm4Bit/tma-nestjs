@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Knex } from 'knex';
 import { KNEX_CONNECTION } from '../database/knex.config.js';
 import { Repository } from '../database/repository.js';
@@ -68,21 +68,23 @@ export class BlogPostsRepository extends Repository {
   ): Promise<BlogPost | null> {
     const updates: Record<string, unknown> = {};
 
-    if (input.title !== undefined) {
-      updates.title = input.title;
-    }
+    // if (input.title !== undefined) {
+    //   updates.title = input.title;
+    // }
+    //
+    // if (input.slug !== undefined) {
+    //   updates.slug = input.slug;
+    // }
+    //
+    // if (input.content !== undefined) {
+    //   updates.content = input.content;
+    // }
 
-    if (input.slug !== undefined) {
-      updates.slug = input.slug;
-    }
-
-    if (input.content !== undefined) {
-      updates.content = input.content;
-    }
-
-    if (input.publishedAt !== undefined) {
-      updates.published_at = input.publishedAt;
-    }
+    Object.entries(input).forEach(([key, value]) => {
+      if (value !== undefined) {
+        updates[key] = value;
+      }
+    });
 
     if (Object.keys(updates).length === 0) {
       return this.findById(id);
@@ -95,6 +97,14 @@ export class BlogPostsRepository extends Repository {
     }
 
     return this.findById(id);
+  }
+
+  async publish(id: number): Promise<BlogPost | null> {
+    const updated = await this.db('blog_posts')
+      .where({ id })
+      .update({ published_at: new Date() });
+
+    return updated ? this.findById(id) : null;
   }
 
   async delete(id: number): Promise<boolean> {

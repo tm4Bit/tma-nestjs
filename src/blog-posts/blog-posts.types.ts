@@ -19,5 +19,4 @@ export type UpdateBlogPostInput = {
   title?: string;
   slug?: string;
   content?: string;
-  publishedAt?: Date | null;
 };
