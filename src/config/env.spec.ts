@@ -13,6 +13,9 @@ const buildEnv = (
   DB_NAME: 'app',
   DB_USER: 'user',
   DB_PASSWORD: 'pass',
+  REDIS_HOST: 'localhost',
+  REDIS_PORT: '6379',
+  REDIS_PASSWORD: '',
   ...overrides,
 });
 
@@ -36,10 +39,19 @@ describe('env config', () => {
     expect(env.DB_NAME).toBe('app');
     expect(env.DB_USER).toBe('user');
     expect(env.DB_PASSWORD).toBe('pass');
+    expect(env.REDIS_HOST).toBe('localhost');
+    expect(env.REDIS_PORT).toBe(6379);
+    expect(env.REDIS_PASSWORD).toBe('');
   });
 
   it('throws when required values are missing', () => {
     process.env = buildEnv({ DB_HOST: '' });
+
+    expect(() => getEnv()).toThrow();
+  });
+
+  it('throws when required redis values are missing', () => {
+    process.env = buildEnv({ REDIS_HOST: '' });
 
     expect(() => getEnv()).toThrow();
   });

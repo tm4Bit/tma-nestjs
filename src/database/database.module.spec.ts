@@ -17,6 +17,9 @@ const buildEnv = (
   DB_NAME: 'app',
   DB_USER: 'user',
   DB_PASSWORD: 'pass',
+  REDIS_HOST: 'localhost',
+  REDIS_PORT: '6379',
+  REDIS_PASSWORD: '',
   ...overrides,
 });
 

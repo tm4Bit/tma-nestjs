@@ -31,6 +31,34 @@
 $ npm install
 ```
 
+## Docker
+
+### Development (API + MariaDB + Redis)
+
+```bash
+$ docker compose -f docker-compose.dev.yml up --build
+```
+
+Defaults used by the dev compose:
+
+- API: `PORT=3000`
+- MariaDB: `DB_HOST=mariadb`, `DB_PORT=3306`, `DB_NAME=app`, `DB_USER=app`, `DB_PASSWORD=app`
+- Redis: `REDIS_HOST=redis`, `REDIS_PORT=6379`, `REDIS_PASSWORD=`
+
+You can override any value with environment variables.
+
+### Production (API only)
+
+```bash
+$ docker compose -f docker-compose.prod.yml up --build
+```
+
+Required env vars for prod compose:
+
+- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
+- `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`
+- `PORT` (optional, defaults to 3000)
+
 ## Compile and run the project
 
 ```bash
