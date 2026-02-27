@@ -104,6 +104,47 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Error responses (RFC 7807)
+
+The API returns errors in Problem Details format (`application/problem+json`).
+
+Base fields in every error response:
+
+- `type`
+- `title`
+- `status`
+- `detail`
+- `instance`
+
+Validation errors also include an `errors` extension with field-level details.
+
+Example: validation error (`400`)
+
+```json
+{
+  "type": "https://api.ovlk.local/problems/validation-error",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Validation failed",
+  "instance": "/blog-posts?limit=0",
+  "errors": [
+    {
+      "path": "limit",
+      "message": "Too small",
+      "code": "too_small"
+    }
+  ]
+}
+```
+
+Example categories:
+
+- HTTP exceptions: `https://api.ovlk.local/problems/http-exception`
+- Validation errors: `https://api.ovlk.local/problems/validation-error`
+- Database conflict (`409`): `https://api.ovlk.local/problems/database-conflict`
+- Database unavailable (`503`): `https://api.ovlk.local/problems/database-unavailable`
+- Unexpected errors (`500`): `https://api.ovlk.local/problems/unexpected-error`
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.

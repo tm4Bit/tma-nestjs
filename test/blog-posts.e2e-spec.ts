@@ -5,6 +5,12 @@ import { App } from 'supertest/types';
 import { BlogPostsController } from '../src/blog-posts/blog-posts.controller.js';
 import { BlogPostsRepository } from '../src/blog-posts/blog-posts.repository.js';
 import { BlogPostsService } from '../src/blog-posts/blog-posts.service.js';
+import { configureHttpApp } from '../src/bootstrap/configure-http-app.js';
+import { PROBLEM_JSON_CONTENT_TYPE } from '../src/errors/problem-details.js';
+
+const problemJsonContentTypePattern = new RegExp(
+  PROBLEM_JSON_CONTENT_TYPE.replace('+', '\\+'),
+);
 
 describe('BlogPostsController (e2e)', () => {
   let app: INestApplication<App>;
@@ -37,7 +43,12 @@ describe('BlogPostsController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    configureHttpApp(app);
     await app.init();
+  });
+
+  afterEach(async () => {
+    await app.close();
   });
 
   it('POST /blog-posts creates a post', async () => {
@@ -87,7 +98,14 @@ describe('BlogPostsController (e2e)', () => {
   });
 
   it('GET /blog-posts rejects invalid query params', async () => {
-    await request(app.getHttpServer()).get('/blog-posts?limit=0').expect(400);
+    await request(app.getHttpServer())
+      .get('/blog-posts?limit=0')
+      .expect(400)
+      .expect('Content-Type', problemJsonContentTypePattern)
+      .expect(({ body }) => {
+        const response = body as { type?: string };
+        expect(response.type).toContain('/validation-error');
+      });
   });
 
   it('GET /blog-posts/:id returns a post', async () => {
@@ -103,7 +121,10 @@ describe('BlogPostsController (e2e)', () => {
   });
 
   it('GET /blog-posts/:id rejects invalid path params', async () => {
-    await request(app.getHttpServer()).get('/blog-posts/abc').expect(400);
+    await request(app.getHttpServer())
+      .get('/blog-posts/abc')
+      .expect(400)
+      .expect('Content-Type', problemJsonContentTypePattern);
   });
 
   it('PATCH /blog-posts/:id updates a post', async () => {
@@ -134,6 +155,66 @@ describe('BlogPostsController (e2e)', () => {
     await request(app.getHttpServer())
       .post('/blog-posts')
       .send({ title: '' })
-      .expect(400);
+      .expect(400)
+      .expect('Content-Type', problemJsonContentTypePattern);
+  });
+
+  it('GET /blog-posts/:id returns Problem Details for HttpException', async () => {
+    repository.findById.mockResolvedValue(null);
+
+    await request(app.getHttpServer())
+      .get('/blog-posts/404')
+      .expect(404)
+      .expect('Content-Type', problemJsonContentTypePattern)
+      .expect(({ body }) => {
+        const response = body as {
+          type?: string;
+          title?: string;
+          detail?: string;
+        };
+        expect(response.type).toContain('/http-exception');
+        expect(response.title).toBe('Not Found');
+        expect(response.detail).toBe('Blog post not found');
+      });
+  });
+
+  it('POST /blog-posts maps duplicate key to 409 problem details', async () => {
+    repository.create.mockRejectedValue({ code: 'ER_DUP_ENTRY', errno: 1062 });
+
+    await request(app.getHttpServer())
+      .post('/blog-posts')
+      .send({ title: 'Hello', slug: 'hello', content: 'Body' })
+      .expect(409)
+      .expect('Content-Type', problemJsonContentTypePattern)
+      .expect(({ body }) => {
+        const response = body as { type?: string };
+        expect(response.type).toContain('/database-conflict');
+      });
+  });
+
+  it('GET /blog-posts maps transient db failure to 503 problem details', async () => {
+    repository.list.mockRejectedValue({ name: 'KnexTimeoutError' });
+
+    await request(app.getHttpServer())
+      .get('/blog-posts')
+      .expect(503)
+      .expect('Content-Type', problemJsonContentTypePattern)
+      .expect(({ body }) => {
+        const response = body as { type?: string };
+        expect(response.type).toContain('/database-unavailable');
+      });
+  });
+
+  it('GET /blog-posts maps unknown errors to 500 problem details', async () => {
+    repository.list.mockRejectedValue(new Error('unexpected failure'));
+
+    await request(app.getHttpServer())
+      .get('/blog-posts')
+      .expect(500)
+      .expect('Content-Type', problemJsonContentTypePattern)
+      .expect(({ body }) => {
+        const response = body as { type?: string };
+        expect(response.type).toContain('/unexpected-error');
+      });
   });
 });
