@@ -58,14 +58,29 @@ describe('problem-details.mapper', () => {
 
   it('classifies duplicate key as conflict', () => {
     expect(classifyDatabaseError({ code: 'ER_DUP_ENTRY' })).toBe('conflict');
+    expect(classifyDatabaseError({ code: 'ER_DUP_KEY' })).toBe('conflict');
     expect(classifyDatabaseError({ errno: 1062 })).toBe('conflict');
   });
 
   it('classifies transient database failures as unavailable', () => {
+    expect(classifyDatabaseError({ code: 'ETIMEDOUT' })).toBe('unavailable');
     expect(classifyDatabaseError({ code: 'ECONNREFUSED' })).toBe('unavailable');
+    expect(classifyDatabaseError({ code: 'EHOSTUNREACH' })).toBe('unavailable');
+    expect(classifyDatabaseError({ code: 'PROTOCOL_CONNECTION_LOST' })).toBe(
+      'unavailable',
+    );
+    expect(
+      classifyDatabaseError({ code: 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR' }),
+    ).toBe('unavailable');
     expect(classifyDatabaseError({ name: 'KnexTimeoutError' })).toBe(
       'unavailable',
     );
+  });
+
+  it('classifies non-database-like values as unknown', () => {
+    expect(classifyDatabaseError(undefined)).toBe('unknown');
+    expect(classifyDatabaseError('boom')).toBe('unknown');
+    expect(classifyDatabaseError({ code: 'UNKNOWN_DB_ERROR' })).toBe('unknown');
   });
 
   it('maps database conflict to 409 problem details', () => {
@@ -96,6 +111,22 @@ describe('problem-details.mapper', () => {
       title: 'Internal Server Error',
       detail: 'An unexpected database error occurred',
       type: PROBLEM_TYPE.databaseError,
+      instance: '/blog-posts/1',
+    });
+  });
+
+  it('maps unavailable database error to 503 problem details', () => {
+    const result = buildDatabaseProblemDetails(
+      { code: 'PROTOCOL_CONNECTION_LOST' },
+      request,
+    );
+
+    expect(result).toEqual({
+      category: 'unavailable',
+      status: 503,
+      title: 'Service Unavailable',
+      detail: 'Database is temporarily unavailable',
+      type: PROBLEM_TYPE.databaseUnavailable,
       instance: '/blog-posts/1',
     });
   });

@@ -26,9 +26,10 @@ export const updateBlogPostSchema = z
     (data) =>
       data.title !== undefined ||
       data.slug !== undefined ||
-      data.content !== undefined || {
-        message: 'At least one field must be provided',
-      },
+      data.content !== undefined,
+    {
+      message: 'At least one field must be provided',
+    },
   );
 
 export class BlogPostIdParamsDto extends createZodDto(blogPostIdSchema) {}

@@ -160,6 +160,7 @@ describe('BlogPostsRepository', () => {
 
       await expect(repository.update(1, {})).resolves.toBeNull();
       expect(builder.update).toHaveBeenCalledWith({});
+      expect(builder.where).toHaveBeenCalledWith({ id: 1 });
     });
 
     it('returns updated post when update succeeds', async () => {
@@ -177,6 +178,40 @@ describe('BlogPostsRepository', () => {
         },
       );
       expect(builder.update).toHaveBeenCalledWith({ title: 'Updated' });
+      expect(builder.where).toHaveBeenCalledWith({ id: 1 });
+      expect(builder.first).toHaveBeenCalledTimes(1);
+    });
+
+    it('forwards payload object reference directly to update query', async () => {
+      const builder = createBuilder();
+      builder.update.mockResolvedValue(1);
+      builder.first.mockResolvedValue({ ...post, title: 'Updated' });
+
+      const db = createDbMock(builder);
+      const repository = new BlogPostsRepository(db as never);
+      const payload = { title: 'Updated' };
+
+      await repository.update(1, payload);
+
+      const [forwardedPayload] = builder.update.mock.calls[0] as [
+        Record<string, unknown>,
+      ];
+      expect(forwardedPayload).toBe(payload);
+    });
+
+    it('returns null when row is updated but fetch misses', async () => {
+      const builder = createBuilder();
+      builder.update.mockResolvedValue(1);
+      builder.first.mockResolvedValue(undefined);
+
+      const db = createDbMock(builder);
+      const repository = new BlogPostsRepository(db as never);
+
+      await expect(
+        repository.update(1, { title: 'Updated' }),
+      ).resolves.toBeNull();
+      expect(builder.update).toHaveBeenCalledWith({ title: 'Updated' });
+      expect(builder.first).toHaveBeenCalledTimes(1);
     });
   });
 

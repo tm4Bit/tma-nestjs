@@ -22,6 +22,25 @@ describe('BlogPostsController (e2e)', () => {
     delete: jest.Mock;
   };
 
+  const expectProblemDetailsBase = (
+    body: unknown,
+    expectedStatus: number,
+  ): void => {
+    const response = body as {
+      type?: string;
+      title?: string;
+      status?: number;
+      detail?: string;
+      instance?: string;
+    };
+
+    expect(typeof response.type).toBe('string');
+    expect(typeof response.title).toBe('string');
+    expect(response.status).toBe(expectedStatus);
+    expect(typeof response.detail).toBe('string');
+    expect(typeof response.instance).toBe('string');
+  };
+
   beforeEach(async () => {
     repository = {
       create: jest.fn(),
@@ -138,6 +157,100 @@ describe('BlogPostsController (e2e)', () => {
         const response = body as { title?: string };
         expect(response.title).toBe('Updated');
       });
+
+    expect(repository.update).toHaveBeenCalledWith(3, { title: 'Updated' });
+  });
+
+  it('PUT /blog-posts/:id allows partial update payload', async () => {
+    repository.update.mockResolvedValue({ id: 3, slug: 'updated-slug' });
+
+    await request(app.getHttpServer())
+      .put('/blog-posts/3')
+      .send({ slug: 'updated-slug' })
+      .expect(200)
+      .expect(({ body }) => {
+        const response = body as { slug?: string };
+        expect(response.slug).toBe('updated-slug');
+      });
+
+    expect(repository.update).toHaveBeenCalledWith(3, { slug: 'updated-slug' });
+  });
+
+  it('PUT /blog-posts/:id rejects empty object payload', async () => {
+    await request(app.getHttpServer())
+      .put('/blog-posts/3')
+      .send({})
+      .expect(400)
+      .expect('Content-Type', problemJsonContentTypePattern)
+      .expect(({ body }) => {
+        expectProblemDetailsBase(body, 400);
+        const response = body as { type?: string };
+        expect(response.type).toContain('/validation-error');
+      });
+  });
+
+  it('PUT /blog-posts/:id rejects null fields in payload', async () => {
+    await request(app.getHttpServer())
+      .put('/blog-posts/3')
+      .send({ title: null })
+      .expect(400)
+      .expect('Content-Type', problemJsonContentTypePattern)
+      .expect(({ body }) => {
+        expectProblemDetailsBase(body, 400);
+        const response = body as {
+          type?: string;
+          errors?: Array<{ path?: string }>;
+        };
+        expect(response.type).toContain('/validation-error');
+        expect(response.errors?.some((issue) => issue.path === 'title')).toBe(
+          true,
+        );
+      });
+  });
+
+  it('PUT /blog-posts/:id rejects invalid field types', async () => {
+    await request(app.getHttpServer())
+      .put('/blog-posts/3')
+      .send({ title: 123 })
+      .expect(400)
+      .expect('Content-Type', problemJsonContentTypePattern)
+      .expect(({ body }) => {
+        expectProblemDetailsBase(body, 400);
+        const response = body as { type?: string };
+        expect(response.type).toContain('/validation-error');
+      });
+  });
+
+  it('PUT /blog-posts/:id rejects invalid path params', async () => {
+    await request(app.getHttpServer())
+      .put('/blog-posts/abc')
+      .send({ title: 'Updated' })
+      .expect(400)
+      .expect('Content-Type', problemJsonContentTypePattern)
+      .expect(({ body }) => {
+        expectProblemDetailsBase(body, 400);
+      });
+  });
+
+  it('PUT /blog-posts/:id returns Problem Details for missing post', async () => {
+    repository.update.mockResolvedValue(null);
+
+    await request(app.getHttpServer())
+      .put('/blog-posts/404')
+      .send({ title: 'Updated' })
+      .expect(404)
+      .expect('Content-Type', problemJsonContentTypePattern)
+      .expect(({ body }) => {
+        expectProblemDetailsBase(body, 404);
+        const response = body as {
+          type?: string;
+          title?: string;
+          detail?: string;
+        };
+        expect(response.type).toContain('/http-exception');
+        expect(response.title).toBe('Not Found');
+        expect(response.detail).toBe('Blog post not found');
+      });
   });
 
   it('DELETE /blog-posts/:id deletes a post', async () => {
@@ -167,6 +280,7 @@ describe('BlogPostsController (e2e)', () => {
       .expect(404)
       .expect('Content-Type', problemJsonContentTypePattern)
       .expect(({ body }) => {
+        expectProblemDetailsBase(body, 404);
         const response = body as {
           type?: string;
           title?: string;
@@ -187,6 +301,7 @@ describe('BlogPostsController (e2e)', () => {
       .expect(409)
       .expect('Content-Type', problemJsonContentTypePattern)
       .expect(({ body }) => {
+        expectProblemDetailsBase(body, 409);
         const response = body as { type?: string };
         expect(response.type).toContain('/database-conflict');
       });
@@ -200,6 +315,7 @@ describe('BlogPostsController (e2e)', () => {
       .expect(503)
       .expect('Content-Type', problemJsonContentTypePattern)
       .expect(({ body }) => {
+        expectProblemDetailsBase(body, 503);
         const response = body as { type?: string };
         expect(response.type).toContain('/database-unavailable');
       });
@@ -213,6 +329,7 @@ describe('BlogPostsController (e2e)', () => {
       .expect(500)
       .expect('Content-Type', problemJsonContentTypePattern)
       .expect(({ body }) => {
+        expectProblemDetailsBase(body, 500);
         const response = body as { type?: string };
         expect(response.type).toContain('/unexpected-error');
       });

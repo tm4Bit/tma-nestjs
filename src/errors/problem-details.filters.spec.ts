@@ -66,10 +66,29 @@ describe('problem-details.filters', () => {
     filter.catch(exception, host);
 
     expect(response.status).toHaveBeenCalledWith(400);
+    expect(response.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      PROBLEM_JSON_CONTENT_TYPE,
+    );
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({
         type: PROBLEM_TYPE.validationError,
         errors: [{ path: 'limit', message: 'Too small', code: 'too_small' }],
+      }),
+    );
+  });
+
+  it('falls back to HttpException mapper in zod filter', () => {
+    const filter = new ZodValidationProblemDetailsFilter();
+    const { host, response } = buildHost(request);
+
+    filter.catch(new BadRequestException('invalid body'), host);
+
+    expect(response.status).toHaveBeenCalledWith(400);
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: PROBLEM_TYPE.httpException,
+        detail: 'invalid body',
       }),
     );
   });
@@ -86,6 +105,60 @@ describe('problem-details.filters', () => {
     );
   });
 
+  it('maps unavailable database errors in global filter', () => {
+    const filter = new GlobalProblemDetailsFilter();
+    const { host, response } = buildHost(request);
+
+    filter.catch({ code: 'ETIMEDOUT' }, host);
+
+    expect(response.status).toHaveBeenCalledWith(503);
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({ type: PROBLEM_TYPE.databaseUnavailable }),
+    );
+  });
+
+  it('maps HttpException in global filter', () => {
+    const filter = new GlobalProblemDetailsFilter();
+    const { host, response } = buildHost(request);
+
+    filter.catch(new NotFoundException('missing'), host);
+
+    expect(response.status).toHaveBeenCalledWith(404);
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: PROBLEM_TYPE.httpException,
+        detail: 'missing',
+      }),
+    );
+  });
+
+  it('maps zod validation exception in global filter', () => {
+    const filter = new GlobalProblemDetailsFilter();
+    const { host, response } = buildHost(request);
+    const exception = new BadRequestException() as BadRequestException & {
+      getZodError: () => unknown;
+    };
+    exception.getZodError = () => ({
+      issues: [{ path: ['title'], message: 'Required', code: 'invalid_type' }],
+    });
+
+    filter.catch(exception, host);
+
+    expect(response.status).toHaveBeenCalledWith(400);
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: PROBLEM_TYPE.validationError,
+        errors: [
+          {
+            path: 'title',
+            message: 'Required',
+            code: 'invalid_type',
+          },
+        ],
+      }),
+    );
+  });
+
   it('maps unknown exceptions to 500 problem details', () => {
     const filter = new GlobalProblemDetailsFilter();
     const { host, response } = buildHost(request);
@@ -93,6 +166,10 @@ describe('problem-details.filters', () => {
     filter.catch(new Error('boom'), host);
 
     expect(response.status).toHaveBeenCalledWith(500);
+    expect(response.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      PROBLEM_JSON_CONTENT_TYPE,
+    );
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({ type: PROBLEM_TYPE.unexpectedError }),
     );

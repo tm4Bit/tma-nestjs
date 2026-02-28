@@ -113,6 +113,18 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+### Testing policy and coverage gates
+
+- Keep unit tests focused on deterministic branch behavior (validation contracts, service/repository semantics, mapper/filter branches).
+- Keep e2e tests focused on request boundaries and error-surface behavior (RFC 7807 responses for validation, HTTP, database, and unexpected failures).
+- Coverage is enforced via Jest thresholds (including branch coverage) to prevent confidence regressions.
+- CI enforces three checks: `test`, `test:e2e`, and `test:cov`.
+
+Optional integration test path:
+
+- `test/blog-posts.repository.integration.e2e-spec.ts` validates update semantics against MariaDB.
+- Run it by setting `RUN_DB_INTEGRATION_TESTS=1` (the default local `test:e2e` flow keeps it skipped).
+
 ## Error responses (RFC 7807)
 
 The API returns errors in Problem Details format (`application/problem+json`).
