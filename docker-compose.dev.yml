@@ -5,17 +5,22 @@ services:
       dockerfile: Dockerfile
       target: dev
     restart: unless-stopped
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     environment:
       NODE_ENV: development
       PORT: ${PORT:-8080}
       DB_HOST: ${DB_HOST:-mariadb}
       DB_PORT: ${DB_PORT:-3306}
-      DB_NAME: ${DB_NAME:-app}
-      DB_USER: ${DB_USER:-app}
-      DB_PASSWORD: ${DB_PASSWORD:-app}
+      DB_NAME: ${DB_NAME:?DB_NAME is required in .env}
+      DB_USER: ${DB_USER:?DB_USER is required in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required in .env}
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required in .env}
     volumes:
       - .:/app
       - /app/node_modules
@@ -29,20 +34,16 @@ services:
     image: mariadb:11.3
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: ${DB_NAME:-app}
-      MARIADB_USER: ${DB_USER:-app}
-      MARIADB_PASSWORD: ${DB_PASSWORD:-app}
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
-    ports:
-      - "3306:3306"
+      MARIADB_DATABASE: ${DB_NAME:?DB_NAME is required in .env}
+      MARIADB_USER: ${DB_USER:?DB_USER is required in .env}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required in .env}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required in .env}
     volumes:
       - mariadb_data:/var/lib/mysql
 
   redis:
     image: redis:7.2-alpine
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis_data:/data

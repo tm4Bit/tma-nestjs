@@ -1,11 +1,14 @@
-.PHONY: help up down build logs shell lint test test-watch start dbinit verify-dbinit
+.PHONY: help up up-ports down down-ports build logs shell lint test test-watch start dbinit verify-dbinit format test-e2e
 
 COMPOSE = docker compose -f docker-compose.dev.yml
+COMPOSE_WITH_PORTS = docker compose -f docker-compose.dev.yml -f docker-compose.dev.override.yml
 
 help:
 	@printf "Targets:\n"
 	@printf "  up          Start dev stack (api + mariadb + redis)\n"
+	@printf "  up-ports    Start dev stack with DB/Redis host ports exposed\n"
 	@printf "  down        Stop dev stack\n"
+	@printf "  down-ports  Stop dev stack started with override ports\n"
 	@printf "  build       Build API image\n"
 	@printf "  logs        Follow API logs\n"
 	@printf "  shell       Open a shell in API container\n"
@@ -19,8 +22,14 @@ help:
 up:
 	$(COMPOSE) up -d --build
 
+up-ports:
+	$(COMPOSE_WITH_PORTS) up -d --build
+
 down:
 	$(COMPOSE) down -v
+
+down-ports:
+	$(COMPOSE_WITH_PORTS) down -v
 
 build:
 	$(COMPOSE) build api

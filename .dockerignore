@@ -1,0 +1,13 @@
+.git
+.github
+.opencode
+node_modules
+dist
+build
+coverage
+.coverage
+*.log
+npm-debug.log*
+Dockerfile*
+docker-compose*.yml
+openspec
