@@ -151,6 +151,17 @@ describe('BlogPostsRepository', () => {
       expect(result).toBeNull();
     });
 
+    it('passes empty payload directly to knex update', async () => {
+      const builder = createBuilder();
+      builder.update.mockResolvedValue(0);
+
+      const db = createDbMock(builder);
+      const repository = new BlogPostsRepository(db as never);
+
+      await expect(repository.update(1, {})).resolves.toBeNull();
+      expect(builder.update).toHaveBeenCalledWith({});
+    });
+
     it('returns updated post when update succeeds', async () => {
       const builder = createBuilder();
       builder.update.mockResolvedValue(1);
@@ -165,20 +176,7 @@ describe('BlogPostsRepository', () => {
           title: 'Updated',
         },
       );
-    });
-
-    it('returns current post when no fields are provided', async () => {
-      const builder = createBuilder();
-
-      const db = createDbMock(builder);
-      const repository = new BlogPostsRepository(db as never);
-      const findByIdSpy = jest
-        .spyOn(repository, 'findById')
-        .mockResolvedValue(post);
-
-      await expect(repository.update(1, {})).resolves.toEqual(post);
-      expect(findByIdSpy).toHaveBeenCalledWith(1);
-      expect(builder.update).not.toHaveBeenCalled();
+      expect(builder.update).toHaveBeenCalledWith({ title: 'Updated' });
     });
   });
 
@@ -203,9 +201,10 @@ describe('BlogPostsRepository', () => {
       const repository = new BlogPostsRepository(db as never);
 
       await expect(repository.publish(1)).resolves.toEqual(published);
-      expect(builder.update).toHaveBeenCalledWith({
-        published_at: expect.any(Date),
-      });
+      const [updatePayload] = builder.update.mock.calls[0] as [
+        { published_at: Date },
+      ];
+      expect(updatePayload.published_at).toBeInstanceOf(Date);
     });
   });
 

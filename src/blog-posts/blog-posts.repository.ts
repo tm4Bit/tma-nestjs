@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Knex } from 'knex';
 import { KNEX_CONNECTION } from '../database/knex.config.js';
 import { Repository } from '../database/repository.js';
@@ -66,16 +66,7 @@ export class BlogPostsRepository extends Repository {
     id: number,
     input: UpdateBlogPostInput,
   ): Promise<BlogPost | null> {
-    const updates = Object.fromEntries(
-      Object.entries(input).filter(([, value]) => value !== undefined),
-    ) as Record<string, unknown>;
-    console.log('Updates:', updates);
-
-    if (Object.keys(updates).length === 0) {
-      return this.findById(id);
-    }
-
-    const updated = await this.db('blog_posts').where({ id }).update(updates);
+    const updated = await this.db('blog_posts').where({ id }).update(input);
 
     if (!updated) {
       return null;
