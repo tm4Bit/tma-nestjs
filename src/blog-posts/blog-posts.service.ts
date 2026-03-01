@@ -3,12 +3,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { BlogPostsRepository } from './blog-posts.repository.js';
+import { BlogPostsRepository } from './blog-posts.repository';
 import type {
   BlogPost,
   CreateBlogPostInput,
   UpdateBlogPostInput,
-} from './blog-posts.types.js';
+} from './blog-posts.types';
 
 @Injectable()
 export class BlogPostsService {

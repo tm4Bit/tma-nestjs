@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Knex } from 'knex';
-import { KNEX_CONNECTION } from './database/knex.config.js';
-import { Repository } from './database/repository.js';
+import { KNEX_CONNECTION } from './database/knex.config';
+import { Repository } from './database/repository';
 
 type VersionRow = { version: string };
 type NestedQueryResult = Array<Array<VersionRow>>;

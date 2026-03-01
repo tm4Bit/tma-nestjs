@@ -1,8 +1,8 @@
 import { Test } from '@nestjs/testing';
 import { Knex } from 'knex';
-import { DatabaseModule } from './database.module.js';
-import { KNEX_CONNECTION } from './knex.config.js';
-import { resetEnv } from '../config/env.js';
+import { DatabaseModule } from './database.module';
+import { KNEX_CONNECTION } from './knex.config';
+import { resetEnv } from '../config/env';
 
 const ORIGINAL_ENV = process.env;
 

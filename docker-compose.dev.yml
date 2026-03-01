@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       target: dev
     restart: unless-stopped
-    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    user: '${LOCAL_UID:-1000}:${LOCAL_GID:-1000}'
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -21,11 +21,17 @@ services:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required in .env}
+      LOG_DIR: ${LOG_DIR:-/app/.logs}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      LOG_MAX_FILES: ${LOG_MAX_FILES:-7d}
+      LOG_MAX_SIZE: ${LOG_MAX_SIZE:-10m}
+      LOG_DATE_PATTERN: ${LOG_DATE_PATTERN:-YYYY-MM-DD}
+      LOG_ZIPPED_ARCHIVE: ${LOG_ZIPPED_ARCHIVE:-false}
     volumes:
       - .:/app
       - /app/node_modules
     ports:
-      - "${PORT:-8080}:${PORT:-8080}"
+      - '${PORT:-8080}:${PORT:-8080}'
     depends_on:
       - mariadb
       - redis
@@ -44,7 +50,7 @@ services:
   redis:
     image: redis:7.2-alpine
     restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ['redis-server', '--appendonly', 'yes']
     volumes:
       - redis_data:/data
 

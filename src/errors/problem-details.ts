@@ -18,6 +18,7 @@ export type ProblemDetails = {
   detail: string;
   instance: string;
   errors?: Array<{ path: string; message: string; code?: string }>;
+  caused_by?: string;
 };
 
 export type DatabaseErrorCategory = 'conflict' | 'unavailable' | 'unknown';
@@ -29,6 +30,7 @@ type ProblemDetailsInput = {
   detail: string;
   instance: string;
   errors?: ProblemDetails['errors'];
+  caused_by?: string;
 };
 
 export const createProblemDetails = (
@@ -41,5 +43,6 @@ export const createProblemDetails = (
     detail: input.detail,
     instance: input.instance,
     ...(input.errors ? { errors: input.errors } : {}),
+    ...(input.caused_by ? { caused_by: input.caused_by } : {}),
   };
 };

@@ -12,11 +12,12 @@ import {
   buildHttpProblemDetails,
   buildUnexpectedProblemDetails,
   buildValidationProblemDetails,
-} from './problem-details.mapper.js';
+} from './problem-details.mapper';
 import {
   createProblemDetails,
   PROBLEM_JSON_CONTENT_TYPE,
-} from './problem-details.js';
+} from './problem-details';
+import { resolveRequestCorrelationId } from '../logging/correlation-id';
 
 type ZodValidationExceptionLike = BadRequestException & {
   getZodError: () => unknown;
@@ -51,6 +52,38 @@ const sendProblem = (
     .status(payload.status)
     .setHeader('Content-Type', PROBLEM_JSON_CONTENT_TYPE)
     .json(payload);
+};
+
+const buildUnhandledErrorLogPayload = (
+  exception: unknown,
+  request: Request,
+): Record<string, unknown> => {
+  return {
+    event: 'unhandled_exception',
+    method: request.method,
+    path: request.originalUrl || request.url,
+    correlationId: resolveRequestCorrelationId(request),
+    error:
+      exception instanceof Error
+        ? {
+            name: exception.name,
+            message: exception.message,
+            stack: exception.stack,
+          }
+        : { value: exception },
+  };
+};
+
+const buildDevelopmentCause = (exception: unknown): string | undefined => {
+  if (process.env.NODE_ENV !== 'development') {
+    return undefined;
+  }
+
+  if (exception instanceof Error) {
+    return exception.stack ?? `${exception.name}: ${exception.message}`;
+  }
+
+  return undefined;
 };
 
 @Catch(HttpException)
@@ -113,9 +146,14 @@ export class GlobalProblemDetailsFilter implements ExceptionFilter {
     }
 
     if (!process.env.JEST_WORKER_ID && process.env.NODE_ENV !== 'test') {
-      this.logger.error('Unhandled exception', exception as Error);
+      this.logger.error(
+        JSON.stringify(buildUnhandledErrorLogPayload(exception, request)),
+      );
     }
-    const payload = buildUnexpectedProblemDetails(request);
+    const payload = createProblemDetails({
+      ...buildUnexpectedProblemDetails(request),
+      caused_by: buildDevelopmentCause(exception),
+    });
     sendProblem(response, payload);
   }
 }

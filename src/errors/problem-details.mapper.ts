@@ -5,7 +5,7 @@ import {
   DatabaseErrorCategory,
   ProblemDetails,
   PROBLEM_TYPE,
-} from './problem-details.js';
+} from './problem-details';
 
 type DatabaseErrorDescriptor = {
   status: number;

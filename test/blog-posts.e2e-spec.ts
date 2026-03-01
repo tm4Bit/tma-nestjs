@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { BlogPostsController } from '../src/blog-posts/blog-posts.controller.js';
-import { BlogPostsRepository } from '../src/blog-posts/blog-posts.repository.js';
-import { BlogPostsService } from '../src/blog-posts/blog-posts.service.js';
-import { configureHttpApp } from '../src/bootstrap/configure-http-app.js';
-import { PROBLEM_JSON_CONTENT_TYPE } from '../src/errors/problem-details.js';
+import { BlogPostsController } from '../src/blog-posts/blog-posts.controller';
+import { BlogPostsRepository } from '../src/blog-posts/blog-posts.repository';
+import { BlogPostsService } from '../src/blog-posts/blog-posts.service';
+import { configureHttpApp } from '../src/bootstrap/configure-http-app';
+import { PROBLEM_JSON_CONTENT_TYPE } from '../src/errors/problem-details';
 
 const problemJsonContentTypePattern = new RegExp(
   PROBLEM_JSON_CONTENT_TYPE.replace('+', '\\+'),

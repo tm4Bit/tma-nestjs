@@ -2,8 +2,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { BlogPostsService } from './blog-posts.service.js';
-import type { BlogPost } from './blog-posts.types.js';
+import { BlogPostsService } from './blog-posts.service';
+import type { BlogPost } from './blog-posts.types';
 
 describe('BlogPostsService', () => {
   const basePost: BlogPost = {

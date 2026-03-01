@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { AppRepository } from './app.repository.js';
+import { AppRepository } from './app.repository';
 
 describe('AppRepository', () => {
   it('uses Knex raw queries for database access', async () => {

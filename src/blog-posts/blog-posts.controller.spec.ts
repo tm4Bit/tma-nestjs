@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { BlogPostsController } from './blog-posts.controller.js';
+import { BlogPostsController } from './blog-posts.controller';
 
 describe('BlogPostsController', () => {
   const basePost = {

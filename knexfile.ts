@@ -1,3 +1,3 @@
-import { buildKnexConfig } from './src/database/knex.config.js';
+import { buildKnexConfig } from './src/database/knex.config';
 
 export default buildKnexConfig();

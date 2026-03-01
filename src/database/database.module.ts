@@ -7,7 +7,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { Knex, knex } from 'knex';
-import { buildKnexConfig, KNEX_CONNECTION } from './knex.config.js';
+import { buildKnexConfig, KNEX_CONNECTION } from './knex.config';
 
 @Global()
 @Module({

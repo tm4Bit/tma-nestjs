@@ -1,6 +1,7 @@
 import {
   ArgumentsHost,
   BadRequestException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import type { Request } from 'express';
@@ -8,8 +9,8 @@ import {
   GlobalProblemDetailsFilter,
   HttpProblemDetailsFilter,
   ZodValidationProblemDetailsFilter,
-} from './problem-details.filters.js';
-import { PROBLEM_JSON_CONTENT_TYPE, PROBLEM_TYPE } from './problem-details.js';
+} from './problem-details.filters';
+import { PROBLEM_JSON_CONTENT_TYPE, PROBLEM_TYPE } from './problem-details';
 
 const buildHost = (request: Request) => {
   const response = {
@@ -29,10 +30,19 @@ const buildHost = (request: Request) => {
 };
 
 describe('problem-details.filters', () => {
+  const envSnapshot = { ...process.env };
+
   const request = {
     originalUrl: '/blog-posts',
     url: '/blog-posts',
+    method: 'GET',
+    header: (name: string) =>
+      name.toLowerCase() === 'x-request-id' ? 'req-123' : undefined,
   } as Request;
+
+  afterEach(() => {
+    process.env = envSnapshot;
+  });
 
   it('handles HttpException as RFC 7807', () => {
     const filter = new HttpProblemDetailsFilter();
@@ -173,5 +183,51 @@ describe('problem-details.filters', () => {
     expect(response.json).toHaveBeenCalledWith(
       expect.objectContaining({ type: PROBLEM_TYPE.unexpectedError }),
     );
+  });
+
+  it('includes caused_by stack trace for unknown exceptions in development', () => {
+    const filter = new GlobalProblemDetailsFilter();
+    const { host, response } = buildHost(request);
+
+    process.env = {
+      ...envSnapshot,
+      NODE_ENV: 'development',
+    };
+
+    filter.catch(new Error('boom'), host);
+
+    expect(response.status).toHaveBeenCalledWith(500);
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: PROBLEM_TYPE.unexpectedError,
+        caused_by: expect.stringContaining('Error: boom'),
+      }),
+    );
+  });
+
+  it('logs structured metadata for unknown exceptions outside test mode', () => {
+    const filter = new GlobalProblemDetailsFilter();
+    const { host } = buildHost(request);
+    const loggerSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+
+    process.env = {
+      ...envSnapshot,
+      NODE_ENV: 'development',
+    };
+    delete process.env.JEST_WORKER_ID;
+
+    filter.catch(new Error('boom'), host);
+
+    expect(loggerSpy).toHaveBeenCalledTimes(1);
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.stringContaining('"event":"unhandled_exception"'),
+    );
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.stringContaining('"correlationId":"req-123"'),
+    );
+
+    loggerSpy.mockRestore();
   });
 });

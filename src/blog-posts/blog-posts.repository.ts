@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Knex } from 'knex';
-import { KNEX_CONNECTION } from '../database/knex.config.js';
-import { Repository } from '../database/repository.js';
+import { KNEX_CONNECTION } from '../database/knex.config';
+import { Repository } from '../database/repository';
 import type {
   BlogPost,
   CreateBlogPostInput,
   UpdateBlogPostInput,
-} from './blog-posts.types.js';
+} from './blog-posts.types';
 
 @Injectable()
 export class BlogPostsRepository extends Repository {

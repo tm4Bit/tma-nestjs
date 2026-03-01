@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { getEnv } from '../config/env.js';
+import { getEnv } from '../config/env';
 
 export const KNEX_CONNECTION = Symbol('KNEX_CONNECTION');
 

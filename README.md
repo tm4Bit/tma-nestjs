@@ -62,8 +62,9 @@ Common targets (all run inside the API container):
 Defaults used by the dev compose:
 
 - API: `PORT=8080`
-- MariaDB: `DB_HOST=mariadb`, `DB_PORT=3306`, `DB_NAME=app`, `DB_USER=app`, `DB_PASSWORD=app`
-- Redis: `REDIS_HOST=redis`, `REDIS_PORT=6379`, `REDIS_PASSWORD=`
+- MariaDB: `DB_HOST=mariadb`, `DB_PORT=3306`, `DB_NAME=tma-nestjs-db`, `DB_USER=tma-nestjs-user`, `DB_PASSWORD=tma-nestjs-secret`
+- Redis: `REDIS_HOST=redis`, `REDIS_PORT=6379`, `REDIS_PASSWORD=tma-nestjs-secret`
+- Logging: `LOG_DIR=/app/.logs`, `LOG_LEVEL=debug`, `LOG_MAX_FILES=7d`, `LOG_MAX_SIZE=10m`, `LOG_DATE_PATTERN=YYYY-MM-DD`, `LOG_ZIPPED_ARCHIVE=false`
 
 You can override any value with environment variables.
 
@@ -85,7 +86,16 @@ Required env vars for prod compose:
 
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`
 - `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`
-- `PORT` (optional, defaults to 3000)
+- `PORT` (optional, defaults to 8080)
+
+Optional logging env vars for prod compose:
+
+- `LOG_DIR` (default `/app/.logs`)
+- `LOG_LEVEL` (default `info`)
+- `LOG_MAX_FILES` (default `14d`)
+- `LOG_MAX_SIZE` (default `20m`)
+- `LOG_DATE_PATTERN` (default `YYYY-MM-DD`)
+- `LOG_ZIPPED_ARCHIVE` (default `true`)
 
 ## Compile and run the project
 
@@ -119,6 +129,15 @@ $ npm run test:cov
 - Keep e2e tests focused on request boundaries and error-surface behavior (RFC 7807 responses for validation, HTTP, database, and unexpected failures).
 - Coverage is enforced via Jest thresholds (including branch coverage) to prevent confidence regressions.
 - CI enforces three checks: `test`, `test:e2e`, and `test:cov`.
+
+### Logging policy
+
+- NestJS logs are centralized via `winston` + `nest-winston`.
+- In development, logs remain console-first and only `error` entries are persisted to rotating files.
+- In production, rotating file transports keep one `error` stream and one combined non-error stream.
+- Rotation/retention controls are env-driven (`LOG_MAX_FILES`, `LOG_MAX_SIZE`, `LOG_DATE_PATTERN`) to prevent unbounded storage growth.
+- Production rotates with compressed archives by default (`LOG_ZIPPED_ARCHIVE=true`).
+- Request-scoped logs include a `correlationId`, reusing inbound `X-Request-Id` or generating one if absent.
 
 Optional integration test path:
 

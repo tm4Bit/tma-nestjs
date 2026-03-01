@@ -9,18 +9,18 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { BlogPostsService } from './blog-posts.service.js';
+import { BlogPostsService } from './blog-posts.service';
 import {
   BlogPostIdParamsDto,
   CreateBlogPostBodyDto,
   ListBlogPostsQueryDto,
   UpdateBlogPostBodyDto,
-} from './blog-posts.schemas.js';
+} from './blog-posts.schemas';
 import {
   zodBodyValidationPipe,
   zodParamsValidationPipe,
   zodQueryValidationPipe,
-} from '../validation/zod-validation.js';
+} from '../validation/zod-validation';
 
 @Controller('blog-posts')
 export class BlogPostsController {

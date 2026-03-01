@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
-import { AppController } from './app.controller.js';
-import { AppModule } from './app.module.js';
-import { resetEnv } from './config/env.js';
+import { AppController } from './app.controller';
+import { AppModule } from './app.module';
+import { resetEnv } from './config/env';
 
 describe('AppModule wiring', () => {
   const envSnapshot = { ...process.env };

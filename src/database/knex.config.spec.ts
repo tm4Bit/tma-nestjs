@@ -1,5 +1,5 @@
-import { buildKnexConfig } from './knex.config.js';
-import { resetEnv } from '../config/env.js';
+import { buildKnexConfig } from './knex.config';
+import { resetEnv } from '../config/env';
 
 const ORIGINAL_ENV = process.env;
 

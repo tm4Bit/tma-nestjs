@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
-import { DatabaseModule } from './database/database.module.js';
-import { BlogPostsModule } from './blog-posts/blog-posts.module.js';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
-import { AppRepository } from './app.repository.js';
+import { DatabaseModule } from './database/database.module';
+import { BlogPostsModule } from './blog-posts/blog-posts.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AppRepository } from './app.repository';
+import { LoggingModule } from './logging/logging.module';
 
 @Module({
-  imports: [DatabaseModule, BlogPostsModule],
+  imports: [LoggingModule, DatabaseModule, BlogPostsModule],
   controllers: [AppController],
   providers: [AppService, AppRepository],
 })

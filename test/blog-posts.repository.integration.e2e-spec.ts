@@ -1,7 +1,7 @@
 import { knex, Knex } from 'knex';
-import { buildKnexConfig } from '../src/database/knex.config.js';
-import { resetEnv } from '../src/config/env.js';
-import { BlogPostsRepository } from '../src/blog-posts/blog-posts.repository.js';
+import { buildKnexConfig } from '../src/database/knex.config';
+import { resetEnv } from '../src/config/env';
+import { BlogPostsRepository } from '../src/blog-posts/blog-posts.repository';
 
 const isDbIntegrationEnabled = process.env.RUN_DB_INTEGRATION_TESTS === '1';
 const describeDbIntegration = isDbIntegrationEnabled ? describe : describe.skip;

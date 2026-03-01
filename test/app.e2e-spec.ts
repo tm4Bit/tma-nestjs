@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppController } from '../src/app.controller.js';
-import { AppService } from '../src/app.service.js';
-import { AppRepository } from '../src/app.repository.js';
-import { configureHttpApp } from '../src/bootstrap/configure-http-app.js';
+import { AppController } from '../src/app.controller';
+import { AppService } from '../src/app.service';
+import { AppRepository } from '../src/app.repository';
+import { configureHttpApp } from '../src/bootstrap/configure-http-app';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;

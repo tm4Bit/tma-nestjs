@@ -6,8 +6,8 @@ import {
   buildUnexpectedProblemDetails,
   buildValidationProblemDetails,
   classifyDatabaseError,
-} from './problem-details.mapper.js';
-import { PROBLEM_TYPE } from './problem-details.js';
+} from './problem-details.mapper';
+import { PROBLEM_TYPE } from './problem-details';
 
 describe('problem-details.mapper', () => {
   const request = {
