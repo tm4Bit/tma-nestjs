@@ -3,7 +3,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { BlogPostsService } from './blog-posts.service';
-import type { BlogPost } from './blog-posts.types';
+import type { BlogPost } from './blog-posts.domain.types';
 
 describe('BlogPostsService', () => {
   const basePost: BlogPost = {

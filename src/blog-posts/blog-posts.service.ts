@@ -8,7 +8,7 @@ import type {
   BlogPost,
   CreateBlogPostInput,
   UpdateBlogPostInput,
-} from './blog-posts.types';
+} from './blog-posts.domain.types';
 
 @Injectable()
 export class BlogPostsService {

@@ -11,14 +11,20 @@ import {
 } from '@nestjs/common';
 import { BlogPostsService } from './blog-posts.service';
 import {
-  BlogPostResponseDto,
   BlogPostIdParamsDto,
+  BlogPostResponseDto,
   CreateBlogPostBodyDto,
   ListBlogPostsQueryDto,
   UpdateBlogPostBodyDto,
-} from './blog-posts.schemas';
+} from './blog-posts.http.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
+import {
+  toBlogPostResponse,
+  toBlogPostResponseList,
+  toCreateBlogPostInput,
+  toUpdateBlogPostInput,
+} from './blog-posts.mapper';
 
 @ApiTags('Blog Posts')
 @Controller('blog-posts')
@@ -29,21 +35,27 @@ export class BlogPostsController {
   @ApiOperation({ summary: 'Create a blog post' })
   @ZodResponse({ status: 201, type: BlogPostResponseDto })
   async create(@Body() body: CreateBlogPostBodyDto) {
-    return this.service.create(body);
+    const post = await this.service.create(toCreateBlogPostInput(body));
+
+    return toBlogPostResponse(post);
   }
 
   @Get()
   @ApiOperation({ summary: 'List blog posts' })
   @ZodResponse({ status: 200, type: [BlogPostResponseDto] })
   async list(@Query() query: ListBlogPostsQueryDto) {
-    return this.service.list(query.limit);
+    const posts = await this.service.list(query.limit);
+
+    return toBlogPostResponseList(posts);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get blog post by id' })
   @ZodResponse({ status: 200, type: BlogPostResponseDto })
   async get(@Param() params: BlogPostIdParamsDto) {
-    return this.service.get(params.id);
+    const post = await this.service.get(params.id);
+
+    return toBlogPostResponse(post);
   }
 
   @Put(':id')
@@ -53,14 +65,21 @@ export class BlogPostsController {
     @Param() params: BlogPostIdParamsDto,
     @Body() body: UpdateBlogPostBodyDto,
   ) {
-    return this.service.update(params.id, body);
+    const post = await this.service.update(
+      params.id,
+      toUpdateBlogPostInput(body),
+    );
+
+    return toBlogPostResponse(post);
   }
 
   @Post(':id')
   @ApiOperation({ summary: 'Publish blog post by id' })
   @ZodResponse({ status: 201, type: BlogPostResponseDto })
   async pusblish(@Param() params: BlogPostIdParamsDto) {
-    return this.service.publish(params.id);
+    const post = await this.service.publish(params.id);
+
+    return toBlogPostResponse(post);
   }
 
   @Delete(':id')

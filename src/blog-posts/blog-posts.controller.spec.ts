@@ -8,8 +8,14 @@ describe('BlogPostsController', () => {
     slug: 'hello',
     content: 'Body',
     publishedAt: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date('2026-03-01T07:00:00.000Z'),
+    updatedAt: new Date('2026-03-01T09:00:00.000Z'),
+  };
+
+  const baseResponse = {
+    ...basePost,
+    createdAt: '2026-03-01T07:00:00.000Z',
+    updatedAt: '2026-03-01T09:00:00.000Z',
   };
 
   describe('create', () => {
@@ -20,7 +26,7 @@ describe('BlogPostsController', () => {
       const controller = new BlogPostsController(service as never);
       const body = { title: 'Hello', slug: 'hello', content: 'Body' };
 
-      await expect(controller.create(body)).resolves.toEqual(basePost);
+      await expect(controller.create(body)).resolves.toEqual(baseResponse);
       expect(service.create).toHaveBeenCalledWith(body);
     });
   });
@@ -32,7 +38,9 @@ describe('BlogPostsController', () => {
       };
       const controller = new BlogPostsController(service as never);
 
-      await expect(controller.list({ limit: 10 })).resolves.toEqual([basePost]);
+      await expect(controller.list({ limit: 10 })).resolves.toEqual([
+        baseResponse,
+      ]);
       expect(service.list).toHaveBeenCalledWith(10);
     });
 
@@ -55,7 +63,7 @@ describe('BlogPostsController', () => {
       };
       const controller = new BlogPostsController(service as never);
 
-      await expect(controller.get({ id: 1 })).resolves.toEqual(basePost);
+      await expect(controller.get({ id: 1 })).resolves.toEqual(baseResponse);
       expect(service.get).toHaveBeenCalledWith(1);
     });
 
@@ -82,22 +90,29 @@ describe('BlogPostsController', () => {
       const controller = new BlogPostsController(service as never);
       const body = { title: 'Updated' };
 
-      await expect(controller.update({ id: 1 }, body)).resolves.toEqual(
-        updated,
-      );
+      await expect(controller.update({ id: 1 }, body)).resolves.toEqual({
+        ...baseResponse,
+        title: 'Updated',
+      });
       expect(service.update).toHaveBeenCalledWith(1, body);
     });
   });
 
   describe('pusblish', () => {
     it('forwards id to service publish action', async () => {
-      const published = { ...basePost, publishedAt: new Date() };
+      const published = {
+        ...basePost,
+        publishedAt: new Date('2026-03-01T10:00:00.000Z'),
+      };
       const service = {
         publish: jest.fn().mockResolvedValue(published),
       };
       const controller = new BlogPostsController(service as never);
 
-      await expect(controller.pusblish({ id: 1 })).resolves.toEqual(published);
+      await expect(controller.pusblish({ id: 1 })).resolves.toEqual({
+        ...baseResponse,
+        publishedAt: '2026-03-01T10:00:00.000Z',
+      });
       expect(service.publish).toHaveBeenCalledWith(1);
     });
   });

@@ -1,5 +1,5 @@
 import { BlogPostsRepository } from './blog-posts.repository';
-import type { BlogPost } from './blog-posts.types';
+import type { BlogPost } from './blog-posts.domain.types';
 
 type Builder = {
   select: jest.Mock;
