@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppController } from '../src/app.controller';
@@ -15,6 +17,8 @@ describe('AppController (e2e)', () => {
       controllers: [AppController],
       providers: [
         AppService,
+        { provide: APP_PIPE, useClass: ZodValidationPipe },
+        { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
         {
           provide: AppRepository,
           useValue: {

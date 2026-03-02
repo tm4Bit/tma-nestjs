@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { BlogPostsController } from '../src/blog-posts/blog-posts.controller';
@@ -19,8 +21,20 @@ describe('BlogPostsController (e2e)', () => {
     list: jest.Mock;
     findById: jest.Mock;
     update: jest.Mock;
+    publish: jest.Mock;
     delete: jest.Mock;
   };
+
+  const buildPost = (overrides: Record<string, unknown> = {}) => ({
+    id: 1,
+    title: 'Hello',
+    slug: 'hello',
+    content: 'Body',
+    publishedAt: null,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    ...overrides,
+  });
 
   const expectProblemDetailsBase = (
     body: unknown,
@@ -47,6 +61,7 @@ describe('BlogPostsController (e2e)', () => {
       list: jest.fn(),
       findById: jest.fn(),
       update: jest.fn(),
+      publish: jest.fn(),
       delete: jest.fn(),
     };
 
@@ -54,6 +69,8 @@ describe('BlogPostsController (e2e)', () => {
       controllers: [BlogPostsController],
       providers: [
         BlogPostsService,
+        { provide: APP_PIPE, useClass: ZodValidationPipe },
+        { provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor },
         {
           provide: BlogPostsRepository,
           useValue: repository,
@@ -71,15 +88,9 @@ describe('BlogPostsController (e2e)', () => {
   });
 
   it('POST /blog-posts creates a post', async () => {
-    repository.create.mockResolvedValue({
-      id: 1,
-      title: 'Hello',
-      slug: 'hello',
-      content: 'Body',
-      publishedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    repository.create.mockResolvedValue(
+      buildPost({ internalTag: 'ignore-me' }),
+    );
 
     await request(app.getHttpServer())
       .post('/blog-posts')
@@ -90,26 +101,32 @@ describe('BlogPostsController (e2e)', () => {
       })
       .expect(201)
       .expect(({ body }) => {
-        const response = body as { title?: string };
+        const response = body as { title?: string; internalTag?: string };
         expect(response.title).toBe('Hello');
+        expect(response.internalTag).toBeUndefined();
       });
   });
 
   it('GET /blog-posts lists posts', async () => {
-    repository.list.mockResolvedValue([{ id: 1 }]);
+    repository.list.mockResolvedValue([
+      buildPost({ internalTag: 'list-extra' }),
+    ]);
 
     await request(app.getHttpServer())
       .get('/blog-posts')
       .expect(200)
       .expect(({ body }) => {
-        expect(body).toEqual([{ id: 1 }]);
+        const response = body as Array<{ id?: number; internalTag?: string }>;
+        expect(response).toHaveLength(1);
+        expect(response[0]?.id).toBe(1);
+        expect(response[0]?.internalTag).toBeUndefined();
       });
 
     expect(repository.list).toHaveBeenCalledWith(undefined);
   });
 
   it('GET /blog-posts supports validated query params', async () => {
-    repository.list.mockResolvedValue([{ id: 1 }]);
+    repository.list.mockResolvedValue([buildPost()]);
 
     await request(app.getHttpServer()).get('/blog-posts?limit=10').expect(200);
 
@@ -128,14 +145,17 @@ describe('BlogPostsController (e2e)', () => {
   });
 
   it('GET /blog-posts/:id returns a post', async () => {
-    repository.findById.mockResolvedValue({ id: 2, title: 'Post' });
+    repository.findById.mockResolvedValue(
+      buildPost({ id: 2, title: 'Post', internalTag: 'hidden' }),
+    );
 
     await request(app.getHttpServer())
       .get('/blog-posts/2')
       .expect(200)
       .expect(({ body }) => {
-        const response = body as { id?: number };
+        const response = body as { id?: number; internalTag?: string };
         expect(response.id).toBe(2);
+        expect(response.internalTag).toBeUndefined();
       });
   });
 
@@ -147,7 +167,7 @@ describe('BlogPostsController (e2e)', () => {
   });
 
   it('PUT /blog-posts/:id updates a post', async () => {
-    repository.update.mockResolvedValue({ id: 3, title: 'Updated' });
+    repository.update.mockResolvedValue(buildPost({ id: 3, title: 'Updated' }));
 
     await request(app.getHttpServer())
       .put('/blog-posts/3')
@@ -162,7 +182,9 @@ describe('BlogPostsController (e2e)', () => {
   });
 
   it('PUT /blog-posts/:id allows partial update payload', async () => {
-    repository.update.mockResolvedValue({ id: 3, slug: 'updated-slug' });
+    repository.update.mockResolvedValue(
+      buildPost({ id: 3, slug: 'updated-slug' }),
+    );
 
     await request(app.getHttpServer())
       .put('/blog-posts/3')
@@ -174,6 +196,23 @@ describe('BlogPostsController (e2e)', () => {
       });
 
     expect(repository.update).toHaveBeenCalledWith(3, { slug: 'updated-slug' });
+  });
+
+  it('POST /blog-posts/:id publishes a post', async () => {
+    repository.publish.mockResolvedValue(
+      buildPost({ id: 5, publishedAt: new Date('2026-01-02T00:00:00.000Z') }),
+    );
+
+    await request(app.getHttpServer())
+      .post('/blog-posts/5')
+      .expect(201)
+      .expect(({ body }) => {
+        const response = body as { id?: number; publishedAt?: string };
+        expect(response.id).toBe(5);
+        expect(typeof response.publishedAt).toBe('string');
+      });
+
+    expect(repository.publish).toHaveBeenCalledWith(5);
   });
 
   it('PUT /blog-posts/:id rejects empty object payload', async () => {

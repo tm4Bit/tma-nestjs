@@ -12,7 +12,7 @@ export type CreateBlogPostInput = {
   title: string;
   slug: string;
   content: string;
-  publishedAt?: Date | null;
+  publishedAt?: Date | string | null;
 };
 
 export type UpdateBlogPostInput = {
