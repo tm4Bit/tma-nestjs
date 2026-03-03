@@ -197,11 +197,14 @@ describe('problem-details.filters', () => {
     filter.catch(new Error('boom'), host);
 
     expect(response.status).toHaveBeenCalledWith(500);
-    expect(response.json).toHaveBeenCalledWith(
+    const [payload] = response.json.mock.calls[0] as [Record<string, unknown>];
+    expect(payload).toEqual(
       expect.objectContaining({
         type: PROBLEM_TYPE.unexpectedError,
-        caused_by: expect.stringContaining('Error: boom'),
       }),
+    );
+    expect(payload['caused_by']).toEqual(
+      expect.stringContaining('Error: boom'),
     );
   });
 
