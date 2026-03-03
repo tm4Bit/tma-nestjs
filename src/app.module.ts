@@ -7,9 +7,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppRepository } from './app.repository';
 import { LoggingModule } from './logging/logging.module';
+import { SchedulingModule } from './scheduling/scheduling.module';
 
 @Module({
-  imports: [LoggingModule, DatabaseModule, BlogPostsModule],
+  imports: [LoggingModule, DatabaseModule, SchedulingModule, BlogPostsModule],
   controllers: [AppController],
   providers: [
     AppService,
