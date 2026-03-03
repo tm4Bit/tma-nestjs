@@ -1,6 +1,18 @@
 import type { Env } from '../config/env';
 import { buildWinstonModuleOptions } from './winston.factory';
 
+jest.mock('winston-daily-rotate-file', () => {
+  return class DailyRotateFile {
+    level: string | undefined;
+    options: Record<string, unknown>;
+
+    constructor(options: Record<string, unknown>) {
+      this.level = options.level as string | undefined;
+      this.options = options;
+    }
+  };
+});
+
 const buildEnv = (overrides: Partial<Env>): Env => {
   return {
     NODE_ENV: 'development',

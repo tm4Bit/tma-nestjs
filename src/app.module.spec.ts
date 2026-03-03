@@ -3,6 +3,16 @@ import { AppController } from './app.controller';
 import { AppModule } from './app.module';
 import { resetEnv } from './config/env';
 
+jest.mock('winston-daily-rotate-file', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+  const Transport = require('winston-transport');
+  return class DailyRotateFile extends Transport {
+    log(_info: unknown, callback: () => void) {
+      callback();
+    }
+  };
+});
+
 describe('AppModule wiring', () => {
   const envSnapshot = { ...process.env };
 
