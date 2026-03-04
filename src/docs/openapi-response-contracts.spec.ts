@@ -1,12 +1,14 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { getQueueToken } from '@nestjs/bullmq';
 import { AppController } from '../app.controller';
 import { AppRepository } from '../app.repository';
 import { AppService } from '../app.service';
 import { BlogPostsController } from '../blog-posts/blog-posts.controller';
 import { BlogPostsRepository } from '../blog-posts/blog-posts.repository';
 import { BlogPostsService } from '../blog-posts/blog-posts.service';
+import { BLOG_POSTS_QUEUE } from '../blog-posts/blog-posts.domain.types';
 import { configureHttpApp } from '../bootstrap/configure-http-app';
 
 describe('OpenAPI response contracts', () => {
@@ -34,6 +36,10 @@ describe('OpenAPI response contracts', () => {
             publish: jest.fn(),
             delete: jest.fn(),
           },
+        },
+        {
+          provide: getQueueToken(BLOG_POSTS_QUEUE),
+          useValue: { add: jest.fn() },
         },
       ],
     }).compile();

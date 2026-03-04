@@ -2,11 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod';
+import { getQueueToken } from '@nestjs/bullmq';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { BlogPostsController } from '../src/blog-posts/blog-posts.controller';
 import { BlogPostsRepository } from '../src/blog-posts/blog-posts.repository';
 import { BlogPostsService } from '../src/blog-posts/blog-posts.service';
+import { BLOG_POSTS_QUEUE } from '../src/blog-posts/blog-posts.domain.types';
 import { configureHttpApp } from '../src/bootstrap/configure-http-app';
 import { PROBLEM_JSON_CONTENT_TYPE } from '../src/errors/problem-details';
 
@@ -74,6 +76,10 @@ describe('BlogPostsController (e2e)', () => {
         {
           provide: BlogPostsRepository,
           useValue: repository,
+        },
+        {
+          provide: getQueueToken(BLOG_POSTS_QUEUE),
+          useValue: { add: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();

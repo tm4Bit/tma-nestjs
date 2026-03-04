@@ -8,9 +8,16 @@ import { AppService } from './app.service';
 import { AppRepository } from './app.repository';
 import { LoggingModule } from './logging/logging.module';
 import { SchedulingModule } from './scheduling/scheduling.module';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
-  imports: [LoggingModule, DatabaseModule, SchedulingModule, BlogPostsModule],
+  imports: [
+    LoggingModule,
+    DatabaseModule,
+    SchedulingModule,
+    QueueModule,
+    BlogPostsModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,

@@ -3,16 +3,23 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { BlogPostsRepository } from './blog-posts.repository';
 import type {
   BlogPost,
   CreateBlogPostInput,
   UpdateBlogPostInput,
+  SendWelcomeEmailJobPayload,
 } from './blog-posts.domain.types';
+import { BLOG_POSTS_QUEUE, BlogPostsJobName } from './blog-posts.domain.types';
 
 @Injectable()
 export class BlogPostsService {
-  constructor(private readonly repository: BlogPostsRepository) {}
+  constructor(
+    private readonly repository: BlogPostsRepository,
+    @InjectQueue(BLOG_POSTS_QUEUE) private readonly queue: Queue,
+  ) {}
 
   async create(input: CreateBlogPostInput): Promise<BlogPost> {
     const post = await this.repository.create(input);
@@ -20,6 +27,12 @@ export class BlogPostsService {
     if (!post) {
       throw new InternalServerErrorException('Failed to create blog post');
     }
+
+    await this.queue.add(BlogPostsJobName.SendWelcomeEmail, {
+      postId: post.id,
+      title: post.title,
+      slug: post.slug,
+    } satisfies SendWelcomeEmailJobPayload);
 
     return post;
   }

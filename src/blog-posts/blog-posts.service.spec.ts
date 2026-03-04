@@ -4,6 +4,7 @@ import {
 } from '@nestjs/common';
 import { BlogPostsService } from './blog-posts.service';
 import type { BlogPost } from './blog-posts.domain.types';
+import { BlogPostsJobName } from './blog-posts.domain.types';
 
 describe('BlogPostsService', () => {
   const basePost: BlogPost = {
@@ -16,12 +17,15 @@ describe('BlogPostsService', () => {
     updatedAt: new Date(),
   };
 
+  const makeQueue = () => ({ add: jest.fn().mockResolvedValue(undefined) });
+
   describe('create', () => {
-    it('returns created post', async () => {
+    it('returns created post and enqueues welcome email job', async () => {
       const repository = {
         create: jest.fn().mockResolvedValue(basePost),
       };
-      const service = new BlogPostsService(repository as never);
+      const queue = makeQueue();
+      const service = new BlogPostsService(repository as never, queue as never);
 
       await expect(
         service.create({ title: 'Hello', slug: 'hello', content: 'Body' }),
@@ -31,17 +35,23 @@ describe('BlogPostsService', () => {
         slug: 'hello',
         content: 'Body',
       });
+      expect(queue.add).toHaveBeenCalledWith(
+        BlogPostsJobName.SendWelcomeEmail,
+        { postId: basePost.id, title: basePost.title, slug: basePost.slug },
+      );
     });
 
     it('throws when repository returns null', async () => {
       const repository = {
         create: jest.fn().mockResolvedValue(null),
       };
-      const service = new BlogPostsService(repository as never);
+      const queue = makeQueue();
+      const service = new BlogPostsService(repository as never, queue as never);
 
       await expect(
         service.create({ title: 'Hello', slug: 'hello', content: 'Body' }),
       ).rejects.toBeInstanceOf(InternalServerErrorException);
+      expect(queue.add).not.toHaveBeenCalled();
     });
   });
 
@@ -51,7 +61,10 @@ describe('BlogPostsService', () => {
       const repository = {
         list: jest.fn().mockResolvedValue(posts),
       };
-      const service = new BlogPostsService(repository as never);
+      const service = new BlogPostsService(
+        repository as never,
+        makeQueue() as never,
+      );
 
       await expect(service.list(10)).resolves.toEqual(posts);
       expect(repository.list).toHaveBeenCalledWith(10);
@@ -63,7 +76,10 @@ describe('BlogPostsService', () => {
       const repository = {
         findById: jest.fn().mockResolvedValue(basePost),
       };
-      const service = new BlogPostsService(repository as never);
+      const service = new BlogPostsService(
+        repository as never,
+        makeQueue() as never,
+      );
 
       await expect(service.get(1)).resolves.toEqual(basePost);
     });
@@ -72,7 +88,10 @@ describe('BlogPostsService', () => {
       const repository = {
         findById: jest.fn().mockResolvedValue(null),
       };
-      const service = new BlogPostsService(repository as never);
+      const service = new BlogPostsService(
+        repository as never,
+        makeQueue() as never,
+      );
 
       await expect(service.get(2)).rejects.toBeInstanceOf(NotFoundException);
     });
@@ -84,7 +103,10 @@ describe('BlogPostsService', () => {
       const repository = {
         update: jest.fn().mockResolvedValue(updatedPost),
       };
-      const service = new BlogPostsService(repository as never);
+      const service = new BlogPostsService(
+        repository as never,
+        makeQueue() as never,
+      );
 
       await expect(service.update(4, { title: 'Updated' })).resolves.toEqual(
         updatedPost,
@@ -96,7 +118,10 @@ describe('BlogPostsService', () => {
       const repository = {
         update: jest.fn().mockResolvedValue(null),
       };
-      const service = new BlogPostsService(repository as never);
+      const service = new BlogPostsService(
+        repository as never,
+        makeQueue() as never,
+      );
 
       await expect(
         service.update(99, { title: 'Updated' }),
@@ -110,7 +135,10 @@ describe('BlogPostsService', () => {
       const repository = {
         publish: jest.fn().mockResolvedValue(publishedPost),
       };
-      const service = new BlogPostsService(repository as never);
+      const service = new BlogPostsService(
+        repository as never,
+        makeQueue() as never,
+      );
 
       await expect(service.publish(4)).resolves.toEqual(publishedPost);
     });
@@ -119,7 +147,10 @@ describe('BlogPostsService', () => {
       const repository = {
         publish: jest.fn().mockResolvedValue(null),
       };
-      const service = new BlogPostsService(repository as never);
+      const service = new BlogPostsService(
+        repository as never,
+        makeQueue() as never,
+      );
 
       await expect(service.publish(4)).rejects.toBeInstanceOf(
         NotFoundException,
@@ -132,7 +163,10 @@ describe('BlogPostsService', () => {
       const repository = {
         delete: jest.fn().mockResolvedValue(true),
       };
-      const service = new BlogPostsService(repository as never);
+      const service = new BlogPostsService(
+        repository as never,
+        makeQueue() as never,
+      );
 
       await expect(service.delete(3)).resolves.toBeUndefined();
       expect(repository.delete).toHaveBeenCalledWith(3);
@@ -142,7 +176,10 @@ describe('BlogPostsService', () => {
       const repository = {
         delete: jest.fn().mockResolvedValue(false),
       };
-      const service = new BlogPostsService(repository as never);
+      const service = new BlogPostsService(
+        repository as never,
+        makeQueue() as never,
+      );
 
       await expect(service.delete(3)).rejects.toBeInstanceOf(NotFoundException);
     });
