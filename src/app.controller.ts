@@ -1,9 +1,10 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 import { AppService } from './app.service';
 import { HealthResponseDto } from './app.schemas';
 
+@ApiTags('Check API Health')
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}

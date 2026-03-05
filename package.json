@@ -20,12 +20,14 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/schedule": "^6.1.1",
     "@nestjs/swagger": "^11.2.6",
+    "axios": "^1.13.6",
     "bullmq": "^5.70.1",
     "knex": "^3.1.0",
     "mysql2": "^3.18.2",
