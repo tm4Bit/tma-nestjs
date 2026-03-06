@@ -28,3 +28,47 @@ services:
       LOG_ZIPPED_ARCHIVE: ${LOG_ZIPPED_ARCHIVE:-true}
     ports:
       - '${PORT:-8080}:${PORT:-8080}'
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    user: '999:999'
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD}
+      - --appendonly
+      - 'yes'
+      - --maxmemory
+      - ${REDIS_MAXMEMORY:-256mb}
+      - --maxmemory-policy
+      - ${REDIS_MAXMEMORY_POLICY:-allkeys-lru}
+      - --bind
+      - '0.0.0.0'
+      - --protected-mode
+      - 'yes'
+      - --loglevel
+      - warning
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    expose:
+      - '6379'
+
+volumes:
+  redis_data:
