@@ -133,7 +133,9 @@ describe('development console printf formatter', () => {
   beforeEach(() => {
     jest.spyOn(format, 'printf').mockImplementation((fn) => {
       capturedPrintf = fn as unknown as (info: LogInfo) => string;
-      return { transform: (info: unknown) => info } as ReturnType<typeof format.printf>;
+      return { transform: (info: unknown) => info } as ReturnType<
+        typeof format.printf
+      >;
     });
     buildWinstonModuleOptions(buildEnv({ NODE_ENV: 'development' }));
   });
@@ -143,9 +145,13 @@ describe('development console printf formatter', () => {
   });
 
   it('joins timestamp, level and message', () => {
-    expect(capturedPrintf({ timestamp: '2024-01-01', level: 'info', message: 'hello' })).toBe(
-      '2024-01-01 [info] hello',
-    );
+    expect(
+      capturedPrintf({
+        timestamp: '2024-01-01',
+        level: 'info',
+        message: 'hello',
+      }),
+    ).toBe('2024-01-01 [info] hello');
   });
 
   it.each([
@@ -153,12 +159,22 @@ describe('development console printf formatter', () => {
     ['number', 42],
     ['boolean', true],
   ])('includes context when it is a %s', (_type, context) => {
-    const result = capturedPrintf({ timestamp: 't', level: 'info', message: 'm', context });
+    const result = capturedPrintf({
+      timestamp: 't',
+      level: 'info',
+      message: 'm',
+      context,
+    });
     expect(result).toContain(`[${String(context)}]`);
   });
 
   it('omits context when it is an object', () => {
-    const result = capturedPrintf({ timestamp: 't', level: 'info', message: 'm', context: {} });
+    const result = capturedPrintf({
+      timestamp: 't',
+      level: 'info',
+      message: 'm',
+      context: {},
+    });
     expect(result).not.toContain('[object');
   });
 
@@ -167,12 +183,22 @@ describe('development console printf formatter', () => {
     ['number', 99],
     ['boolean', false],
   ])('includes correlationId when it is a %s', (_type, correlationId) => {
-    const result = capturedPrintf({ timestamp: 't', level: 'info', message: 'm', correlationId });
+    const result = capturedPrintf({
+      timestamp: 't',
+      level: 'info',
+      message: 'm',
+      correlationId,
+    });
     expect(result).toContain(`[corr=${String(correlationId)}]`);
   });
 
   it('omits correlationId when it is an object', () => {
-    const result = capturedPrintf({ timestamp: 't', level: 'info', message: 'm', correlationId: {} });
+    const result = capturedPrintf({
+      timestamp: 't',
+      level: 'info',
+      message: 'm',
+      correlationId: {},
+    });
     expect(result).not.toContain('corr=');
   });
 
@@ -185,7 +211,9 @@ describe('development console printf formatter', () => {
 });
 
 describe('nonErrorFilter and addCorrelationId', () => {
-  type TransformFn = (info: Record<string, unknown>) => Record<string, unknown> | false;
+  type TransformFn = (
+    info: Record<string, unknown>,
+  ) => Record<string, unknown> | false;
 
   let nonErrorFilterFn: TransformFn;
   let addCorrelationIdFn: TransformFn;
@@ -201,22 +229,21 @@ describe('nonErrorFilter and addCorrelationId', () => {
       }));
       jest.doMock('winston-daily-rotate-file', () => {
         return class DailyRotateFile {
-          constructor(_options: Record<string, unknown>) {}
+          constructor() {}
         };
       });
 
-      const actualWinston = jest.requireActual<typeof import('winston')>('winston');
+      const actualWinston =
+        jest.requireActual<typeof import('winston')>('winston');
       jest.doMock('winston', () => ({
         ...actualWinston,
-        format: Object.assign(
-          (fn: TransformFn) => {
-            callbacks.push(fn);
-            return actualWinston.format(fn);
-          },
-          actualWinston.format,
-        ),
+        format: Object.assign((fn: TransformFn) => {
+          callbacks.push(fn);
+          return actualWinston.format(fn);
+        }, actualWinston.format),
       }));
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('./winston.factory');
     });
 
@@ -248,7 +275,11 @@ describe('nonErrorFilter and addCorrelationId', () => {
 
     it('does not overwrite an existing correlationId on info', () => {
       mockGetCorrelationId.mockReturnValue('new-corr');
-      const info = { level: 'info', message: 'test', correlationId: 'original' };
+      const info = {
+        level: 'info',
+        message: 'test',
+        correlationId: 'original',
+      };
       addCorrelationIdFn(info);
       expect(info.correlationId).toBe('original');
     });

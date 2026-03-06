@@ -8,7 +8,7 @@ import { App } from 'supertest/types';
 import { BlogPostsController } from '../src/blog-posts/blog-posts.controller';
 import { BlogPostsRepository } from '../src/blog-posts/blog-posts.repository';
 import { BlogPostsService } from '../src/blog-posts/blog-posts.service';
-import { BLOG_POSTS_QUEUE } from '../src/blog-posts/blog-posts.domain.types';
+import { BLOG_POSTS_QUEUE } from '../src/blog-posts/blog-posts.constants';
 import { configureHttpApp } from '../src/bootstrap/configure-http-app';
 import { PROBLEM_JSON_CONTENT_TYPE } from '../src/errors/problem-details';
 

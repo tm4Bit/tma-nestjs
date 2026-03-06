@@ -68,7 +68,7 @@ describe('DatabaseModule', () => {
   });
 
   it('creates a knex connection via the module factory', async () => {
-    const { knex } = jest.requireMock('knex') as { knex: jest.Mock };
+    const { knex } = jest.requireMock<{ knex: jest.Mock }>('knex');
 
     const module = await Test.createTestingModule({
       imports: [DatabaseModule],
