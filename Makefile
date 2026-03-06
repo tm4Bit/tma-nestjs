@@ -1,7 +1,8 @@
-.PHONY: help up up-ports down down-ports build logs shell lint test test-watch start dbinit verify-dbinit format test-e2e
+.PHONY: help up up-ports down down-ports build logs shell lint test test-watch start dbinit verify-dbinit format test-e2e deploy
 
 COMPOSE = docker compose -f docker-compose.dev.yml
 COMPOSE_WITH_PORTS = docker compose -f docker-compose.dev.yml -f docker-compose.dev.override.yml
+COMPOSE_PROD = docker compose -f docker-compose.prod.yml
 
 help:
 	@printf "Targets:\n"
@@ -18,6 +19,7 @@ help:
 	@printf "  lint        Run lint inside API container\n"
 	@printf "  test        Run tests inside API container\n"
 	@printf "  test-watch  Run tests in watch mode inside API container\n"
+	@printf "  deploy      Pull latest changes and redeploy production stack\n"
 
 up:
 	$(COMPOSE) up -d --build
@@ -68,3 +70,7 @@ test-e2e:
 
 test-watch:
 	$(COMPOSE) exec api npm run test:watch
+
+deploy:
+	git pull origin master
+	$(COMPOSE_PROD) up -d --build
