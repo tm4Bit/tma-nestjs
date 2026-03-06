@@ -1,4 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  NotFoundException,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import {
   buildDatabaseProblemDetails,
@@ -26,6 +30,52 @@ describe('problem-details.mapper', () => {
       detail: 'Blog post not found',
       instance: '/blog-posts/1',
     });
+  });
+
+  it('falls back to "Error" title for unknown HTTP status codes', () => {
+    const exception = new HttpException('custom', 499);
+    const result = buildHttpProblemDetails(exception, request);
+
+    expect(result.title).toBe('Error');
+  });
+
+  it('uses a string response body directly as detail', () => {
+    const exception = new HttpException('plain string message', 400);
+    const result = buildHttpProblemDetails(exception, request);
+
+    expect(result.detail).toBe('plain string message');
+  });
+
+  it('joins array message entries as detail', () => {
+    const exception = new HttpException(
+      { message: ['must be a string', 'must not be empty'] },
+      400,
+    );
+    const result = buildHttpProblemDetails(exception, request);
+
+    expect(result.detail).toBe('must be a string, must not be empty');
+  });
+
+  it('falls back to default detail when message is not a usable value', () => {
+    const exception = new HttpException({ message: null }, 400);
+    const result = buildHttpProblemDetails(exception, request);
+
+    expect(result.detail).toBe('Request failed');
+  });
+
+  it('formats issue path as "root" when path is absent or non-array', () => {
+    const exception = {
+      getZodError: () => ({
+        issues: [{ path: undefined, message: 'Required', code: 'required' }],
+      }),
+    };
+
+    const result = buildValidationProblemDetails(
+      exception as Parameters<typeof buildValidationProblemDetails>[0],
+      request,
+    );
+
+    expect(result.errors![0].path).toBe('root');
   });
 
   it('maps zod validation error with errors extension', () => {

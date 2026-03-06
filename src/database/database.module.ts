@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Knex, knex } from 'knex';
 import { buildKnexConfig, KNEX_CONNECTION } from './knex.config';
+import { getEnv } from 'src/config/env';
 
 @Global()
 @Module({
@@ -25,7 +26,7 @@ export class DatabaseModule implements OnModuleInit, OnModuleDestroy {
   constructor(@Inject(KNEX_CONNECTION) private readonly db: Knex) {}
 
   async onModuleInit(): Promise<void> {
-    if (process.env.NODE_ENV !== 'test') {
+    if (getEnv().NODE_ENV !== 'test') {
       await this.db.raw('select 1');
       this.logger.log('Knex connection initialized');
     }

@@ -185,6 +185,51 @@ describe('problem-details.filters', () => {
     );
   });
 
+  it('handles zod validation exception in HttpProblemDetailsFilter', () => {
+    const filter = new HttpProblemDetailsFilter();
+    const { host, response } = buildHost(request);
+    const exception = new BadRequestException() as BadRequestException & {
+      getZodError: () => unknown;
+    };
+    exception.getZodError = () => ({
+      issues: [{ path: ['name'], message: 'Required', code: 'invalid_type' }],
+    });
+
+    filter.catch(exception, host);
+
+    expect(response.status).toHaveBeenCalledWith(400);
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: PROBLEM_TYPE.validationError,
+        errors: [{ path: 'name', message: 'Required', code: 'invalid_type' }],
+      }),
+    );
+  });
+
+  it('omits caused_by when NODE_ENV is not development', () => {
+    const filter = new GlobalProblemDetailsFilter();
+    const { host, response } = buildHost(request);
+
+    process.env = { ...envSnapshot, NODE_ENV: 'production' };
+
+    filter.catch(new Error('boom'), host);
+
+    const [payload] = response.json.mock.calls[0] as [Record<string, unknown>];
+    expect(payload['caused_by']).toBeUndefined();
+  });
+
+  it('omits caused_by in development when exception is not an Error', () => {
+    const filter = new GlobalProblemDetailsFilter();
+    const { host, response } = buildHost(request);
+
+    process.env = { ...envSnapshot, NODE_ENV: 'development' };
+
+    filter.catch('string exception', host);
+
+    const [payload] = response.json.mock.calls[0] as [Record<string, unknown>];
+    expect(payload['caused_by']).toBeUndefined();
+  });
+
   it('includes caused_by stack trace for unknown exceptions in development', () => {
     const filter = new GlobalProblemDetailsFilter();
     const { host, response } = buildHost(request);

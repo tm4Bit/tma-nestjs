@@ -1,10 +1,11 @@
+import { BLOG_POST_JOB_NAME } from './blog-posts.constants';
+import { NotificationEmailJobPayload } from './blog-posts.domain.types';
 import { BlogPostsWorker } from './blog-posts.worker';
-import { BlogPostsJobName } from './blog-posts.domain.types';
-import type { SendWelcomeEmailJobPayload } from './blog-posts.domain.types';
 import { Job } from 'bullmq';
 
-const makeJob = (name: string, data: unknown): Job =>
-  ({ id: '1', name, data }) as unknown as Job;
+const makeJob = (name: string, data: unknown): Job => {
+  return { id: '1', name, data } as unknown as Job;
+};
 
 describe('BlogPostsWorker', () => {
   let worker: BlogPostsWorker;
@@ -23,16 +24,16 @@ describe('BlogPostsWorker', () => {
 
   describe('process', () => {
     it('handles send-welcome-email job', async () => {
-      const payload: SendWelcomeEmailJobPayload = {
+      const payload: NotificationEmailJobPayload = {
         postId: 1,
         title: 'Hello',
         slug: 'hello',
       };
-      const job = makeJob(BlogPostsJobName.SendWelcomeEmail, payload);
+      const job = makeJob(BLOG_POST_JOB_NAME.notificationEmail, payload);
 
       await expect(worker.process(job)).resolves.toBeUndefined();
       expect(logSpy).toHaveBeenCalledWith(
-        `Sending welcome email for post "${payload.title}" (id=${payload.postId})`,
+        `Sending notification email for post "${payload.title}" (id=${payload.postId})`,
       );
     });
 
@@ -46,7 +47,7 @@ describe('BlogPostsWorker', () => {
 
   describe('onCompleted', () => {
     it('logs job completion', () => {
-      const job = makeJob(BlogPostsJobName.SendWelcomeEmail, {});
+      const job = makeJob(BLOG_POST_JOB_NAME.notificationEmail, {});
 
       worker.onCompleted(job);
 
@@ -61,7 +62,7 @@ describe('BlogPostsWorker', () => {
       const errorSpy = jest
         .spyOn(worker['logger'], 'error')
         .mockImplementation(() => undefined);
-      const job = makeJob(BlogPostsJobName.SendWelcomeEmail, {});
+      const job = makeJob(BLOG_POST_JOB_NAME.notificationEmail, {});
       const error = new Error('something went wrong');
 
       worker.onFailed(job, error);

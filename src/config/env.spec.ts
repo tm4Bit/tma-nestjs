@@ -99,4 +99,28 @@ describe('env config', () => {
 
     expect(env.LOG_ZIPPED_ARCHIVE).toBe(true);
   });
+
+  it('accepts a boolean value directly for LOG_ZIPPED_ARCHIVE', () => {
+    process.env = buildEnv({
+      LOG_ZIPPED_ARCHIVE: true as unknown as string,
+    });
+
+    const env = getEnv();
+
+    expect(env.LOG_ZIPPED_ARCHIVE).toBe(true);
+  });
+
+  it('throws when LOG_ZIPPED_ARCHIVE is a non-string non-boolean value', () => {
+    process.env = buildEnv({
+      LOG_ZIPPED_ARCHIVE: 42 as unknown as string,
+    });
+
+    expect(() => getEnv()).toThrow();
+  });
+
+  it('throws when LOG_ZIPPED_ARCHIVE is an unrecognized string', () => {
+    process.env = buildEnv({ LOG_ZIPPED_ARCHIVE: 'maybe' });
+
+    expect(() => getEnv()).toThrow();
+  });
 });

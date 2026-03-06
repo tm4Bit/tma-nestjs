@@ -9,10 +9,10 @@ import { BlogPostsRepository } from './blog-posts.repository';
 import type {
   BlogPost,
   CreateBlogPostInput,
+  NotificationEmailJobPayload,
   UpdateBlogPostInput,
-  SendWelcomeEmailJobPayload,
 } from './blog-posts.domain.types';
-import { BLOG_POSTS_QUEUE, BlogPostsJobName } from './blog-posts.domain.types';
+import { BLOG_POST_JOB_NAME, BLOG_POSTS_QUEUE } from './blog-posts.constants';
 
 @Injectable()
 export class BlogPostsService {
@@ -28,11 +28,11 @@ export class BlogPostsService {
       throw new InternalServerErrorException('Failed to create blog post');
     }
 
-    await this.queue.add(BlogPostsJobName.SendWelcomeEmail, {
+    await this.queue.add(BLOG_POST_JOB_NAME.notificationEmail, {
       postId: post.id,
       title: post.title,
       slug: post.slug,
-    } satisfies SendWelcomeEmailJobPayload);
+    } satisfies NotificationEmailJobPayload);
 
     return post;
   }

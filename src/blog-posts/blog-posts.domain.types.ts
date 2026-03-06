@@ -21,15 +21,7 @@ export type UpdateBlogPostInput = {
   content?: string;
 };
 
-// Queue
-
-export const BLOG_POSTS_QUEUE = 'blog-posts' as const;
-
-export const BlogPostsJobName = {
-  SendWelcomeEmail: 'send-welcome-email',
-} as const;
-
-export type SendWelcomeEmailJobPayload = {
+export type NotificationEmailJobPayload = {
   postId: number;
   title: string;
   slug: string;

@@ -1,11 +1,8 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import {
-  BLOG_POSTS_QUEUE,
-  BlogPostsJobName,
-  SendWelcomeEmailJobPayload,
-} from './blog-posts.domain.types';
+import { BLOG_POST_JOB_NAME, BLOG_POSTS_QUEUE } from './blog-posts.constants';
+import { NotificationEmailJobPayload } from './blog-posts.domain.types';
 
 @Processor(BLOG_POSTS_QUEUE)
 export class BlogPostsWorker extends WorkerHost {
@@ -13,9 +10,9 @@ export class BlogPostsWorker extends WorkerHost {
 
   async process(job: Job): Promise<unknown> {
     switch (job.name) {
-      case BlogPostsJobName.SendWelcomeEmail:
-        return this.handleSendWelcomeEmail(
-          job.data as SendWelcomeEmailJobPayload,
+      case BLOG_POST_JOB_NAME.notificationEmail:
+        return this.handleNotificationEmail(
+          job.data as NotificationEmailJobPayload,
         );
       default:
         this.logger.warn(`Unknown job name: ${job.name}`);
@@ -23,11 +20,11 @@ export class BlogPostsWorker extends WorkerHost {
     }
   }
 
-  private async handleSendWelcomeEmail(
-    data: SendWelcomeEmailJobPayload,
+  private async handleNotificationEmail(
+    data: NotificationEmailJobPayload,
   ): Promise<void> {
     this.logger.log(
-      `Sending welcome email for post "${data.title}" (id=${data.postId})`,
+      `Sending notification email for post "${data.title}" (id=${data.postId})`,
     );
     // TODO: inject and call an EmailService here
     await Promise.resolve();

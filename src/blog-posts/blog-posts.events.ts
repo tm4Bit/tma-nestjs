@@ -4,7 +4,7 @@ import {
   OnQueueEvent,
 } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import { BLOG_POSTS_QUEUE } from './blog-posts.domain.types';
+import { BLOG_POSTS_QUEUE } from './blog-posts.constants';
 
 @QueueEventsListener(BLOG_POSTS_QUEUE)
 export class BlogPostsEventsListener extends QueueEventsHost {

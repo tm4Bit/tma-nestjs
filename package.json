@@ -85,6 +85,9 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
@@ -92,7 +95,10 @@
       "**/*.(t|j)s"
     ],
     "coveragePathIgnorePatterns": [
-      "\\.d\\.ts$"
+      "\\.d\\.ts$",
+      "main\\.ts$",
+      "\\.module\\.ts$",
+      "\\.schemas\\.ts$"
     ],
     "coverageDirectory": "../.coverage",
     "coverageThreshold": {

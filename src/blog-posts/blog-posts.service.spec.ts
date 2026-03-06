@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import { BlogPostsService } from './blog-posts.service';
 import type { BlogPost } from './blog-posts.domain.types';
-import { BlogPostsJobName } from './blog-posts.domain.types';
+import { BLOG_POST_JOB_NAME } from './blog-posts.constants';
 
 describe('BlogPostsService', () => {
   const basePost: BlogPost = {
@@ -36,7 +36,7 @@ describe('BlogPostsService', () => {
         content: 'Body',
       });
       expect(queue.add).toHaveBeenCalledWith(
-        BlogPostsJobName.SendWelcomeEmail,
+        BLOG_POST_JOB_NAME.notificationEmail,
         { postId: basePost.id, title: basePost.title, slug: basePost.slug },
       );
     });

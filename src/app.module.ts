@@ -12,10 +12,13 @@ import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
+    // Core modules
     LoggingModule,
     DatabaseModule,
     SchedulingModule,
     QueueModule,
+
+    // Feature modules
     BlogPostsModule,
   ],
   controllers: [AppController],

@@ -7,7 +7,7 @@ import { BlogPostsService } from './blog-posts.service';
 import { BlogPostsScheduler } from './blog-posts.scheduler';
 import { BlogPostsWorker } from './blog-posts.worker';
 import { BlogPostsEventsListener } from './blog-posts.events';
-import { BLOG_POSTS_QUEUE } from './blog-posts.domain.types';
+import { BLOG_POSTS_QUEUE } from './blog-posts.constants';
 
 @Module({
   imports: [

@@ -4,6 +4,13 @@ import { DatabaseModule } from './database.module';
 import { KNEX_CONNECTION } from './knex.config';
 import { resetEnv } from '../config/env';
 
+jest.mock('knex', () => ({
+  knex: jest.fn().mockReturnValue({
+    raw: jest.fn().mockResolvedValue(undefined),
+    destroy: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 const ORIGINAL_ENV = process.env;
 
 const buildEnv = (
@@ -34,18 +41,6 @@ describe('DatabaseModule', () => {
     resetEnv();
   });
 
-  it('creates a shared Knex instance', async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [DatabaseModule],
-    }).compile();
-
-    const knex = moduleRef.get<Knex>(KNEX_CONNECTION);
-
-    expect(knex).toBeDefined();
-
-    await moduleRef.close();
-  });
-
   it('skips connection ping in test environment', async () => {
     const raw = jest.fn();
     const destroy = jest.fn();
@@ -70,5 +65,33 @@ describe('DatabaseModule', () => {
     await moduleInstance.onModuleDestroy();
 
     expect(destroy).toHaveBeenCalled();
+  });
+
+  it('creates a knex connection via the module factory', async () => {
+    const { knex } = jest.requireMock('knex') as { knex: jest.Mock };
+
+    const module = await Test.createTestingModule({
+      imports: [DatabaseModule],
+    }).compile();
+
+    expect(knex).toHaveBeenCalled();
+    expect(module.get(KNEX_CONNECTION)).toBeDefined();
+
+    await module.close();
+  });
+
+  it('pings database on init when not in test environment', async () => {
+    process.env = buildEnv({ NODE_ENV: 'development' });
+    resetEnv();
+
+    const raw = jest.fn().mockResolvedValue(undefined);
+    const moduleInstance = new DatabaseModule({
+      raw,
+      destroy: jest.fn(),
+    } as unknown as Knex);
+
+    await moduleInstance.onModuleInit();
+
+    expect(raw).toHaveBeenCalledWith('select 1');
   });
 });
