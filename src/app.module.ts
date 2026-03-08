@@ -9,6 +9,7 @@ import { AppRepository } from './app.repository';
 import { LoggingModule } from './logging/logging.module';
 import { SchedulingModule } from './scheduling/scheduling.module';
 import { QueueModule } from './queue/queue.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { QueueModule } from './queue/queue.module';
     DatabaseModule,
     SchedulingModule,
     QueueModule,
+    AuthModule,
 
     // Feature modules
     BlogPostsModule,

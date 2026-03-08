@@ -44,6 +44,8 @@ const envSchema = z.object({
   REDIS_HOST: z.string().min(1),
   REDIS_PORT: z.coerce.number().int().positive().default(6379),
   REDIS_PASSWORD: z.string().optional(),
+  JWT_SECRET: z.string().min(1),
+  JWT_EXPIRES_IN: z.string().min(1).default('1d'),
   LOG_DIR: z.string().min(1).default('/app/.logs'),
   LOG_LEVEL: z.enum(LOG_LEVELS).optional(),
   LOG_MAX_FILES: z.string().min(1).default('14d'),

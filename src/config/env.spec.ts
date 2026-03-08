@@ -16,6 +16,7 @@ const buildEnv = (
   REDIS_HOST: 'localhost',
   REDIS_PORT: '6379',
   REDIS_PASSWORD: '',
+  JWT_SECRET: 'test-secret',
   LOG_DIR: '/app/.logs',
   LOG_LEVEL: 'info',
   LOG_MAX_FILES: '14d',

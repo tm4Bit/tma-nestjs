@@ -27,6 +27,7 @@ const buildEnv = (
   REDIS_HOST: 'localhost',
   REDIS_PORT: '6379',
   REDIS_PASSWORD: '',
+  JWT_SECRET: 'test-secret',
   ...overrides,
 });
 
