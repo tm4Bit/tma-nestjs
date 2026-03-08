@@ -21,6 +21,7 @@ describeDbIntegration('BlogPostsRepository integration (MariaDB)', () => {
     process.env.REDIS_HOST = process.env.REDIS_HOST ?? '127.0.0.1';
     process.env.REDIS_PORT = process.env.REDIS_PORT ?? '6379';
     process.env.REDIS_PASSWORD = process.env.REDIS_PASSWORD ?? '';
+    process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'test-secret';
 
     resetEnv();
     db = knex(buildKnexConfig());
